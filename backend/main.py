@@ -60,6 +60,61 @@ def analyze_image():
     except Exception as error:
         return jsonify({"error": str(error)}), 500
     
+@app.route("/chat", methods=["POST"])
+def chat():
+    try:
+        # Get JSON data from Expo
+        data = request.get_json()
+
+        # Get the user's message
+        user_message = data.get("message", "")
+
+        # Get previous chat history, optional
+        history = data.get("history", [])
+
+        # Check if message is empty
+        if user_message.strip() == "":
+            return jsonify({
+                "error": "Message is empty"
+            }), 400
+
+        # Convert chat history into readable text
+        history_text = ""
+        for item in history:
+            role = item.get("role", "user")
+            text = item.get("text", "")
+            history_text += f"{role}: {text}\n"
+
+        # Create prompt for Gemini
+        prompt = f"""
+    You are a chatbot for conversation
+
+    Previous conversation:
+    {history_text}
+
+    User: {user_message}
+    Bot:
+"""
+
+        # Send prompt to Gemini
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=prompt,
+        )
+
+        # Return Gemini reply to Expo
+        return jsonify({
+            "reply": response.text
+        })
+
+    except Exception as error:
+        print("Chat error:", error)
+
+        return jsonify({
+            "error": str(error)
+        }), 500
+    
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
+
 
