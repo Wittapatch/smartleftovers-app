@@ -1,5 +1,6 @@
 import os
 
+from database import add_user
 from dotenv import load_dotenv
 from flask import Flask, jsonify, request
 from flask_cors import CORS
@@ -115,7 +116,18 @@ def chat():
             "error": str(error)
         }), 500
     
+
+@app.route("/create-user",methods=['POST'])
+def create_user():
+    data = request.json
+    _id = data.get("_id") if data else None
+    
+    if not _id:
+        return jsonify({"error":"No id provided"}), 400
+    
+    add_user(_id)
+    return jsonify({"message": "User created"}), 201
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
-
 
