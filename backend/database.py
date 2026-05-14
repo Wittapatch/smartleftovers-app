@@ -16,7 +16,6 @@ try:
     col = db.get_collection("user_data")
 except Exception as e:
     raise Exception("Unable to find the collection due to the following error: ", e)
-    
 
 if __name__ == "__main__":
     try:
