@@ -12,3 +12,4 @@ class FoodItem(BaseModel):
     food_type:Food_Type | None = None
     price:float|None = Field(None,ge=0)
     quantity:int|None = Field(None,ge=0)
+    description:str|None = None
