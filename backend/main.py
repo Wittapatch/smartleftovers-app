@@ -1,6 +1,6 @@
 import os
 
-from database import add_user
+from database import add_user, delete_user
 from dotenv import load_dotenv
 from flask import Flask, jsonify, request
 from flask_cors import CORS
@@ -128,6 +128,16 @@ def create_user():
     add_user(_id)
     return jsonify({"message": "User created"}), 201
 
+@app.route("/delete-account", methods=["DELETE"])
+def delete_account():
+    data = request.json
+    _id = data.get("_id") if data else None
+
+    if not _id:
+        return jsonify({"error": "No id provided"}), 400
+
+    delete_user(_id)
+    return jsonify({"message": "Account deleted"}), 200
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
-
