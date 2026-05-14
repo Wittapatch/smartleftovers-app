@@ -1,7 +1,8 @@
 import os
-from flask import Flask, request, jsonify
-from flask_cors import CORS
+
 from dotenv import load_dotenv
+from flask import Flask, jsonify, request
+from flask_cors import CORS
 from google import genai
 from google.genai import types
 
@@ -25,7 +26,7 @@ client = genai.Client(api_key=GEMINI_API_KEY)
 
 @app.route("/", methods=["GET"])
 def home():
-    return jsonify({"message": "Flack backend is running"})
+    return jsonify({"message": "Flask backend is running"})
 
 @app.route("/analyze-image", methods=["POST"])
 def analyze_image():
