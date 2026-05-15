@@ -4,7 +4,7 @@ from uuid import uuid4
 
 from pydantic import BaseModel, Field
 
-Food_Type = Literal["dairy,protein,vegetable,fruit,carbohydrate,drink,other"]
+Food_Type = Literal["dairy", "protein", "vegetable", "fruit", "carbohydrate", "drink", "other"]
 class FoodItem(BaseModel):
     food_id:str=Field(default_factory=lambda:str(uuid4()))
     name:str
