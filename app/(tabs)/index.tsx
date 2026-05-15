@@ -1,7 +1,6 @@
-import { useState } from "react";
-import {Alert,FlatList,Image,KeyboardAvoidingView,Modal,Platform,ScrollView,StyleSheet,Switch,Text,TextInput,TouchableOpacity,View,} from "react-native";
 import CameraCapture from "@/components/CameraCapture";
 import { IconSymbol } from "@/components/ui/icon-symbol";
+import { auth } from "@/config/firebaseConfig";
 import { useRouter } from "expo-router";
 import {analyzeImageWithGemini, ExtractedFoodData} from "@/lib/analyzeImageWithGemini";
 
@@ -55,7 +54,6 @@ const createEmptyDraft = (): FoodDraft => {
 };
 
 export default function HomeScreen() {
-
   const router = useRouter();
 
   const [loading, setLoading] = useState(false);
@@ -95,7 +93,7 @@ export default function HomeScreen() {
 
   const deleteFood = (foodId: string) => {
     setFoods((currentFoods) =>
-      currentFoods.filter((food) => food.id !== foodId)
+      currentFoods.filter((food) => food.id !== foodId),
     );
   };
 
@@ -117,13 +115,48 @@ export default function HomeScreen() {
     ]);
   };
 
-  const saveFood = () => {
+  const saveFood = async () => {
     if (draft.name.trim() === "") {
       Alert.alert("Missing name", "Name is important. Please enter food name.");
       return;
     }
 
     if (editingFoodId) {
+      const user = auth.currentUser;
+
+      if (!user) {
+        Alert.alert("Not logged in", "Please log in again.");
+        return;
+      }
+
+      try {
+        const response = await fetch("http://192.168.1.48:5000/update-food", {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            _id: user.uid,
+            food_id: editingFoodId,
+            name: draft.name,
+            expiry_date: draft.expiryDate || null,
+            food_type: draft.type || null,
+            price: null,
+            quantity: draft.amount ? Number(draft.amount) : null,
+            description: draft.description || null,
+          }),
+        });
+        const data = await response.json();
+
+        if (!response.ok) {
+          Alert.alert("Update food failed", data.error ?? "Please try again.");
+          return;
+        }
+      } catch (error: any) {
+        Alert.alert("Update food failed", error.message);
+        return;
+      }
+
       setFoods((currentFoods) =>
         currentFoods.map((food) =>
           food.id === editingFoodId
@@ -139,24 +172,56 @@ export default function HomeScreen() {
                 description: draft.description,
                 useExtractFeature: draft.useExtractFeature,
               }
-            : food
-        )
+            : food,
+        ),
       );
     } else {
-      const newFood: FoodItem = {
-        id: Date.now().toString(),
-        imageUri: draft.imageUri,
-        name: draft.name,
-        type: draft.type,
-        expiryDate: draft.expiryDate,
-        purchaseDate: draft.purchaseDate,
-        amount: draft.amount,
-        unit: draft.unit,
-        description: draft.description,
-        useExtractFeature: draft.useExtractFeature,
-      };
+      const user = auth.currentUser;
 
-      setFoods((currentFoods) => [newFood, ...currentFoods]);
+      if (!user) {
+        Alert.alert("Not logged in", "Please log in again.");
+        return;
+      }
+
+      try {
+        const response = await fetch("http://192.168.1.48:5000/add-food", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            _id: user.uid,
+            name: draft.name,
+            expiry_date: draft.expiryDate || null,
+            food_type: draft.type || null,
+            price: null,
+            quantity: draft.amount ? Number(draft.amount) : null,
+            description: draft.description || null,
+          }),
+        });
+        const data = await response.json();
+        const foodId = data.food_id;
+        if (!response.ok) {
+          Alert.alert("Add food failed", data.error ?? "Please try again.");
+          return;
+        }
+        const newFood: FoodItem = {
+          id: foodId,
+          imageUri: draft.imageUri,
+          name: draft.name,
+          type: draft.type,
+          expiryDate: draft.expiryDate,
+          purchaseDate: draft.purchaseDate,
+          amount: draft.amount,
+          unit: draft.unit,
+          description: draft.description,
+          useExtractFeature: draft.useExtractFeature,
+        };
+        setFoods((currentFoods) => [newFood, ...currentFoods]);
+      } catch (error: any) {
+        Alert.alert("Add food failed", error.message);
+        return;
+      }
     }
 
     setShowFormModal(false);
@@ -268,7 +333,11 @@ export default function HomeScreen() {
           style={styles.circleButton}
           onPress={() => Alert.alert("Filter", "Add filter feature later")}
         >
-          <IconSymbol size={30} name="line.3.horizontal.decrease.circle.fill" color="#222222" />
+          <IconSymbol
+            size={30}
+            name="line.3.horizontal.decrease.circle.fill"
+            color="#222222"
+          />
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.circleButton} onPress={openCamera}>

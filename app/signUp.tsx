@@ -1,8 +1,17 @@
-import { useState } from "react";
-import {Alert,KeyboardAvoidingView,Platform,StyleSheet,Text,TextInput,TouchableOpacity, View,} from "react-native";
-import { createUserWithEmailAndPassword } from "firebase/auth";
-import { useRouter } from "expo-router";
 import { auth } from "@/config/firebaseConfig";
+import { useRouter } from "expo-router";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { useState } from "react";
+import {
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 export default function SignUpScreen() {
   const router = useRouter();
@@ -36,10 +45,19 @@ export default function SignUpScreen() {
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         email,
-        password
+        password,
       );
 
       Alert.alert("Sign up success", userCredential.user.email ?? "");
+      await fetch("http://192.168.1.48:5000/create-user", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          _id: userCredential.user.uid,
+        }),
+      });
 
       // Go to main tabs after successful signup
       router.replace("/(tabs)");
@@ -103,7 +121,10 @@ export default function SignUpScreen() {
       </TouchableOpacity>
 
       {/* Go back to login page */}
-      <TouchableOpacity style={styles.button} onPress={() => router.push("/login")}>
+      <TouchableOpacity
+        style={styles.button}
+        onPress={() => router.push("/login")}
+      >
         <Text style={styles.buttonText}>Back to Login</Text>
       </TouchableOpacity>
     </KeyboardAvoidingView>
