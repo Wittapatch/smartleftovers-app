@@ -135,6 +135,41 @@ export default function HomeScreen() {
     }
 
     if (editingFoodId) {
+      const user = auth.currentUser;
+
+      if (!user) {
+        Alert.alert("Not logged in", "Please log in again.");
+        return;
+      }
+
+      try {
+        const response = await fetch("http://192.168.1.48:5000/update-food", {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            _id: user.uid,
+            food_id: editingFoodId,
+            name: draft.name,
+            expiry_date: draft.expiryDate || null,
+            food_type: draft.type || null,
+            price: null,
+            quantity: draft.amount ? Number(draft.amount) : null,
+            description: draft.description || null,
+          }),
+        });
+        const data = await response.json();
+
+        if (!response.ok) {
+          Alert.alert("Update food failed", data.error ?? "Please try again.");
+          return;
+        }
+      } catch (error: any) {
+        Alert.alert("Update food failed", error.message);
+        return;
+      }
+
       setFoods((currentFoods) =>
         currentFoods.map((food) =>
           food.id === editingFoodId

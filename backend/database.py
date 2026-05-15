@@ -46,15 +46,11 @@ def delete_food(_id:str,food_item:FoodItem):
     col.update_one({"_id":_id},{"$pull":{"food_items":FoodItem}})
 
 def update_food(_id:str,food_id:str,name:str,expiry_date:date,food_type:Food_Type,price:float,quantity:int,description:str):
-    user_data = col.find_one({"_id":_id})
-    if user_data is None:
-        print("User not Found")
-    else:
-        foods = user_data["food_items"]
-        for food in foods:
-            if food.food_id == food_id:
-                food = FoodItem(name=name,expiry_date=expiry_date,food_type=food_type,price=price,quantity=quantity,description=description)
-                break
+    food_item = FoodItem(food_id=food_id,name=name,expiry_date=expiry_date,food_type=food_type,price=price,quantity=quantity,description=description)
+    col.update_one(
+        {"_id":_id,"food_items.food_id":food_id},
+        {"$set":{"food_items.$":food_item.model_dump(mode="json")}},
+    )
 #Check that connection to the MongoDB works
 if __name__ == "__main__":
     try:
