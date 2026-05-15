@@ -1,5 +1,6 @@
 import os
 
+from database import add_food, add_user, delete_user, update_food
 from dotenv import load_dotenv
 from flask import Flask, jsonify, request
 from flask_cors import CORS
@@ -115,7 +116,71 @@ def chat():
             "error": str(error)
         }), 500
     
+
+@app.route("/create-user",methods=['POST'])
+def create_user():
+    data = request.json
+    _id = data.get("_id") if data else None
+    
+    if not _id:
+        return jsonify({"error":"No id provided"}), 400
+    
+    add_user(_id)
+    return jsonify({"message": "User created"}), 201
+
+@app.route("/delete-account", methods=["DELETE"])
+def delete_account():
+    data = request.json
+    _id = data.get("_id") if data else None
+
+    if not _id:
+        return jsonify({"error": "No id provided"}), 400
+
+    delete_user(_id)
+    return jsonify({"message": "Account deleted"}), 200
+
+@app.route("/add-food", methods=["POST"])
+def create_food():
+    data = request.json
+    _id = data.get("_id") if data else None
+
+    if not _id:
+        return jsonify({"error": "No id provided"}), 400
+
+    add_food(
+        _id,
+        data.get("name"),
+        data.get("expiry_date"),
+        data.get("food_type"),
+        data.get("price"),
+        data.get("quantity"),
+        data.get("description"),
+    )
+    return jsonify({"message": "Food added"}), 201
+
+@app.route("/update-food", methods=["PUT"])
+def edit_food():
+    data = request.json
+    _id = data.get("_id") if data else None
+    food_id = data.get("food_id") if data else None
+
+    if not _id:
+        return jsonify({"error": "No id provided"}), 400
+
+    if not food_id:
+        return jsonify({"error": "No food id provided"}), 400
+
+    update_food(
+        _id,
+        food_id,
+        data.get("name"),
+        data.get("expiry_date"),
+        data.get("food_type"),
+        data.get("price"),
+        data.get("quantity"),
+        data.get("description"),
+    )
+    return jsonify({"message": "Food updated"}), 200
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
-
-
