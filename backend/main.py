@@ -8,7 +8,7 @@ from google import genai
 from google.genai import types
 
 # Load backend/.env
-load_dotenv()
+load_dotenv(dotenv_path=r"C:\Users\witta\Documents\secrets\secretsmartleftovers\.env")
 
 # Get Gemini API key from .env
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
@@ -43,17 +43,55 @@ def analyze_image():
         image_bytes = image_file.read()
 
         # Get image mine type, like image/jpeg
-        mime_type = image_file.minetype or "image/jpeg"
+        mime_type = image_file.mimetype or "image/jpeg"
+
+        prompt = """
+You are an image extraction assistant for a food inventory app.
+
+Look carefully at the image and extract food information.
+
+Return ONLY valid JSON.
+Do not include markdown.
+Do not include ```json.
+Do not include explanation outside the JSON.
+
+Use this exact JSON structure:
+{
+    "name": "",
+    "food_type": "",
+    "price": "",
+    "quantity": "",
+    "unit": "",
+    "expiry_date": "",
+    "purchase_date": "",
+    "description": ""
+}
+
+Rules to follow:
+- "name" is important. If you can identify the food, write the food name.
+- "food_type" should be one simple category from this list only:
+  Dairy, Meat, Vegetable, Fruit, Grain, Drink, Snack, Frozen, Sauce, Other.
+- "price" should only be filled if the image clearly shows a price. Otherwise use an empty string.
+- "quantity" should only be filled if the image clearly shows a quantity, weight, volume, or count.
+- "unit" should be the unit for quantity, such as g, kg, ml, L, pieces, slices, pack, bottle, can, box.
+- "expiry_date" should only be filled if the image clearly shows an expiry date, use-by date, or best-before date.
+- "purchase_date" should only be filled if the image clearly shows a purchase date. Otherwise use an empty string.
+- Use date format DD/MM/YY when possible.
+- "description" should briefly describe what is visible in the image.
+- Do not guess hidden information.
+- Do not invent expiry dates, purchase dates, prices, or quantities.
+- If a field cannot be deterined from the image, use an empty string.
+"""
 
         # Send image to Gemini
         response = client.models.generate_content(
-            model="gemini-2.5-flash",
+            model="gemini-3.1-flash-lite-preview",
             contents=[
                 types.Part.from_bytes(
                     data=image_bytes,
                     mime_type=mime_type,
                 ),
-                "ADD PROMPT HERE",
+                prompt,
             ],
         )
 
@@ -100,7 +138,7 @@ def chat():
 
         # Send prompt to Gemini
         response = client.models.generate_content(
-            model="gemini-2.5-flash",
+            model="gemini-3.1-flash-lite-preview",
             contents=prompt,
         )
 

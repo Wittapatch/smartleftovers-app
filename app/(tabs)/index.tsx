@@ -3,6 +3,7 @@ import {Alert,FlatList,Image,KeyboardAvoidingView,Modal,Platform,ScrollView,Styl
 import CameraCapture from "@/components/CameraCapture";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useRouter } from "expo-router";
+import {analyzeImageWithGemini, ExtractedFoodData} from "@/lib/analyzeImageWithGemini";
 
 interface FoodItem {
   id: string;
@@ -56,6 +57,8 @@ const createEmptyDraft = (): FoodDraft => {
 export default function HomeScreen() {
 
   const router = useRouter();
+
+  const [loading, setLoading] = useState(false);
 
   const [foods, setFoods] = useState<FoodItem[]>([]);
 
@@ -161,6 +164,49 @@ export default function HomeScreen() {
     setDraft(createEmptyDraft());
   };
 
+  const analyzeTakenPhoto = async (uri:string) => {
+    try {
+      setLoading(true);
+      Alert.alert("Analyzing", "Extracting food information...");
+
+      const result = await analyzeImageWithGemini(uri);
+
+      console.log("Raw Gemini result:", result.rawText);
+      console.log("Extracted data:", result.extractedData);
+
+      if (result.extractedData) {
+        fillDraftWithExtractedData(result.extractedData);
+        Alert.alert("Done", "Food information extracted");
+      } else {
+        Alert.alert("Extraction warning", "Gemini returned a result, but it could not be converted into form fields");
+      } 
+    } catch(error:any) {
+      console.log("Extract error", error);
+      Alert.alert("Error", error.message || "Could not extract image data");
+    } finally { 
+      setLoading(false);
+    }
+  }
+
+  const fillDraftWithExtractedData = (data: ExtractedFoodData) => {
+    setDraft((currentDraft) => ({
+      ...currentDraft,
+      // Keep the image that was already taken
+      imageUri: currentDraft.imageUri,
+      // Fill fields wiht Gemini result
+      name: data.name || currentDraft.name,
+      type: data.food_type || currentDraft.type,
+      expiryDate: data.expiry_date || currentDraft.expiryDate,
+      purchaseDate: data.purchase_date || currentDraft.purchaseDate,
+      amount: data.quantity || currentDraft.amount,
+      unit: data.unit || currentDraft.unit,
+      description: data.description || currentDraft.description,
+
+      // Mark that extract feature was used
+      useExtractFeature: true,
+    }))
+  }
+
   const renderFoodCard = ({ item }: { item: FoodItem }) => {
     return (
       <View style={styles.card}>
@@ -242,13 +288,31 @@ export default function HomeScreen() {
         <View style={{ flex: 1 }}>
           <CameraCapture
             onPhotoTaken={(uri) => {
+              // Saving the image URI into the draft
               setDraft((currentDraft) => ({
                 ...currentDraft,
                 imageUri: uri,
               }));
 
+              // Close camera and open form
               setShowCameraModal(false);
               setShowFormModal(true);
+
+              // Ask user if they want to use extract feature
+              Alert.alert(
+                "Use extract feature?",
+                "Do you want Gemini to extract food information from this picture?",
+                [
+                  {
+                    text: "No",
+                    style: "cancel",
+                  },
+                  {
+                    text: "Yes",
+                    onPress: () => analyzeTakenPhoto(uri),
+                  },
+                ]
+              );
             }}
           />
 
@@ -275,6 +339,12 @@ export default function HomeScreen() {
 
               {draft.imageUri && (
                 <Image source={{ uri: draft.imageUri }} style={styles.previewImage} />
+              )}
+
+              {loading && (
+                <Text style={styles.loadingText}>
+                  Extracting food information...
+                </Text>
               )}
 
               <View style={styles.switchRow}>
@@ -406,6 +476,15 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
+
+
+  loadingText: {
+    fontSize: 14,
+    color: "#555555",
+    marginBottom: 12,
+    textAlign: "center",
+  },
+
   container: {
     flex: 1,
     backgroundColor: "#F7F7F7",
@@ -539,14 +618,14 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 55,
     left: 20,
-    backgroundColor: "black",
+    backgroundColor: "#FFFFFF",
     paddingVertical: 8,
     paddingHorizontal: 14,
     borderRadius: 10,
   },
 
   closeCameraText: {
-    color: "white",
+    color: "#111111",
     fontWeight: "600",
   },
 

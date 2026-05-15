@@ -81,40 +81,34 @@ export default function CameraCapture({ onPhotoTaken }: CameraCaptureProps) {
       {/* Connect this CameraView to cameraRef so I can use it later*/}
       <CameraView ref={cameraRef} style={{ flex: 1 }} facing="back" />
 
-      {/* Text on top of camera */}
-      <Text
-        style={{
-          position: "absolute",
-          top: 60,
-          alignSelf: "center",
-          color: "white",
-          fontSize: 18,
-          backgroundColor: "black",
-          padding: 8,
-          zIndex: 10,
-        }}
-      >
-        Camera is open
-      </Text>
-
       {/* Button that takes picture */}
       <TouchableOpacity
         onPress={takePhoto}
+        activeOpacity={0.7}
         style={{
           position: "absolute",
-          bottom: 100,
+          bottom: 90,
           alignSelf: "center",
-          backgroundColor: "red",
-          paddingVertical: 18,
-          paddingHorizontal: 30,
-          borderRadius: 12,
+          width: 82,
+          height: 82,
+          borderRadius: 41,
+          backgroundColor: "rgba(255,255,255,0.35)",
+          alignItems: "center",
+          justifyContent: "center",
           zIndex: 10,
           elevation: 10,
         }}
       >
-        <Text style={{ color: "white", fontWeight: "bold", fontSize: 18 }}>
-          Take Picture
-        </Text>
+        <View
+          style={{
+            width: 68,
+            height: 68,
+            borderRadius: 34,
+            backgroundColor: "white",
+            borderWidth: 3,
+            borderColor: "#E5E5E5",
+          }}
+        />
       </TouchableOpacity>
 
       {/* Show preview only after photoUri has value */}

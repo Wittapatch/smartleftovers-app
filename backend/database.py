@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 from model import Food_Type, FoodItem
 from pymongo import MongoClient
 
-load_dotenv()
+load_dotenv(dotenv_path=r"C:\Users\witta\Documents\secrets\secretsmartleftovers\.env")
 
 uri = getenv("MONGO_URI")
 
