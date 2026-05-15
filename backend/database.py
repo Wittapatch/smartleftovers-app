@@ -32,13 +32,14 @@ def filter_food_type(_id:str,food_type:Food_Type):
     else:
         foods = user_info["food_items"]
         for food in foods:
-            if food["food_items"].food_type == "food_type":
+            if food.get("food_type") == food_type:
                 result.append(food)
         return result
 
+
 def add_food(_id:str,name:str,expiry_date:date,food_type:Food_Type,price:float,quantity:int,description:str):
     food_item = FoodItem(name=name,expiry_date=expiry_date,food_type=food_type,price=price,quantity=quantity,description=description)
-    col.update_one({"_id":_id},{"$push":{"food_items":food_item}})
+    col.update_one({"_id":_id},{"$push":{"food_items":food_item.model_dump(mode="json")}})
 
 def delete_food(_id:str,food_item:FoodItem):
     col.update_one({"_id":_id},{"$pull":{"food_items":FoodItem}})

@@ -1,11 +1,13 @@
 import os
+from typing import cast, get_args
 
-from database import add_food, add_user, delete_user, update_food
+from database import add_food, add_user, delete_user, filter_food_type, update_food
 from dotenv import load_dotenv
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from google import genai
 from google.genai import types
+from model import Food_Type
 
 # Load backend/.env
 load_dotenv()
@@ -181,6 +183,22 @@ def edit_food():
         data.get("description"),
     )
     return jsonify({"message": "Food updated"}), 200
+
+@app.route("/filter-food-type",methods=["GET"])
+def get_food_type():
+    _id = request.args.get("_id")
+    food_type_value = request.args.get("food_type")
+    if not _id or not food_type_value:
+        return jsonify({"error":"not_id or food_type not provided"}),400
+
+    if food_type_value not in get_args(Food_Type):
+        return jsonify({"error": "Invalid food_type"}), 400
+
+    food_type = cast(Food_Type, food_type_value)
+    result = filter_food_type(_id,food_type=food_type)
+    return jsonify(result), 200
+    
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
