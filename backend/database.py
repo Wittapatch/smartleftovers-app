@@ -40,6 +40,7 @@ def filter_food_type(_id:str,food_type:Food_Type):
 def add_food(_id:str,name:str,expiry_date:date,food_type:Food_Type,price:float,quantity:int,description:str):
     food_item = FoodItem(name=name,expiry_date=expiry_date,food_type=food_type,price=price,quantity=quantity,description=description)
     col.update_one({"_id":_id},{"$push":{"food_items":food_item.model_dump(mode="json")}})
+    return food_item.food_id
 
 def delete_food(_id:str,food_item:FoodItem):
     col.update_one({"_id":_id},{"$pull":{"food_items":FoodItem}})

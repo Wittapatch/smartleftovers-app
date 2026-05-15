@@ -149,7 +149,7 @@ def create_food():
     if not _id:
         return jsonify({"error": "No id provided"}), 400
 
-    add_food(
+    food_id = add_food(
         _id,
         data.get("name"),
         data.get("expiry_date"),
@@ -158,7 +158,7 @@ def create_food():
         data.get("quantity"),
         data.get("description"),
     )
-    return jsonify({"message": "Food added"}), 201
+    return jsonify({"message": "Food added","food_id":food_id}), 201
 
 @app.route("/update-food", methods=["PUT"])
 def edit_food():

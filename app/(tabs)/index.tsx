@@ -177,34 +177,29 @@ export default function HomeScreen() {
             description: draft.description || null,
           }),
         });
-
+        const data = await response.json();
+        const foodId = data.food_id;
         if (!response.ok) {
-          const errorData = await response.json();
-          Alert.alert(
-            "Add food failed",
-            errorData.error ?? "Please try again.",
-          );
+          Alert.alert("Add food failed", data.error ?? "Please try again.");
           return;
         }
+        const newFood: FoodItem = {
+          id: foodId,
+          imageUri: draft.imageUri,
+          name: draft.name,
+          type: draft.type,
+          expiryDate: draft.expiryDate,
+          purchaseDate: draft.purchaseDate,
+          amount: draft.amount,
+          unit: draft.unit,
+          description: draft.description,
+          useExtractFeature: draft.useExtractFeature,
+        };
+        setFoods((currentFoods) => [newFood, ...currentFoods]);
       } catch (error: any) {
         Alert.alert("Add food failed", error.message);
         return;
       }
-
-      const newFood: FoodItem = {
-        id: Date.now().toString(),
-        imageUri: draft.imageUri,
-        name: draft.name,
-        type: draft.type,
-        expiryDate: draft.expiryDate,
-        purchaseDate: draft.purchaseDate,
-        amount: draft.amount,
-        unit: draft.unit,
-        description: draft.description,
-        useExtractFeature: draft.useExtractFeature,
-      };
-
-      setFoods((currentFoods) => [newFood, ...currentFoods]);
     }
 
     setShowFormModal(false);
