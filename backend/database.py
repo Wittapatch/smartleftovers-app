@@ -9,8 +9,6 @@ uri = getenv("MONGO_URI")
 
 client = MongoClient(uri)
 
-
-
 try:
     db = client.get_database("smart_leftovers")
     col = db.get_collection("user_data")
