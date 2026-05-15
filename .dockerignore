@@ -1,0 +1,17 @@
+node_modules
+.expo
+dist
+web-build
+.git
+.DS_Store
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+.env
+.env.local
+.env*.local
+backend/.env
+backend/__pycache__
+backend/*.pyc
+ios
+android
