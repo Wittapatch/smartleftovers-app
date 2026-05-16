@@ -1,30 +1,40 @@
-from datetime import date
 from os import getenv
 
 from dotenv import load_dotenv
 from model import Food_Type, FoodItem
 from pymongo import MongoClient
 
-load_dotenv(dotenv_path=r"C:\Users\witta\Documents\secrets\secretsmartleftovers\.env")
+load_dotenv()
 
-uri = getenv("MONGO_URI")
+# MongoDB connection string is provided by Docker or the local terminal.
+uri = getenv("MONGO_DB_URI")
+
+if not uri:
+    raise ValueError("Missing MONGO_DB_URI in the environment")
 
 client = MongoClient(uri)
 
 
 try:
+    # All users are stored in one collection, keyed by their Firebase uid.
     db = client.get_database("smart_leftovers")
     col = db.get_collection("user_data")
 except Exception as e:
     raise Exception("Unable to find the collection due to the following error: ", e)
 
 def add_user(_id:str):
-    col.insert_one({"_id":_id,"food_items":[]})
+    # Create the user document once without overwriting existing food items.
+    col.update_one(
+        {"_id":_id},
+        {"$setOnInsert":{"food_items":[]}},
+        upsert=True,
+    )
 
 def delete_user(_id:str):
     col.delete_one({"_id":_id})
 
 def filter_food_type(_id:str,food_type:Food_Type):
+    # Read the user's embedded list and return only matching food categories.
     user_info = col.find_one({"_id":_id})
     result=[]
     if user_info is None:
@@ -36,17 +46,55 @@ def filter_food_type(_id:str,food_type:Food_Type):
                 result.append(food)
         return result
 
+def get_foods(_id:str):
+    # Auto-create the document on first use so later writes have a place to land.
+    user_info = col.find_one({"_id":_id}, {"food_items": 1})
 
-def add_food(_id:str,name:str,expiry_date:date,food_type:Food_Type,price:float,quantity:int,description:str):
-    food_item = FoodItem(name=name,expiry_date=expiry_date,food_type=food_type,price=price,quantity=quantity,description=description)
-    col.update_one({"_id":_id},{"$push":{"food_items":food_item.model_dump(mode="json")}})
+    if user_info is None:
+        add_user(_id)
+        return []
+
+    return user_info.get("food_items", [])
+
+def add_food(_id:str,name:str,expiry_date:str,purchase_date:str,food_type:Food_Type,quantity:int,unit:str,description:str,image_uri:str,image_data:str,use_extract_feature:bool):
+    # Pydantic validates and gives each item a unique food_id before saving.
+    food_item = FoodItem(
+        image_uri=image_uri,
+        image_data=image_data,
+        name=name,
+        expiry_date=expiry_date,
+        purchase_date=purchase_date,
+        food_type=food_type,
+        quantity=quantity,
+        unit=unit,
+        description=description,
+        use_extract_feature=use_extract_feature,
+    )
+    col.update_one(
+        {"_id":_id},
+        {"$push":{"food_items":food_item.model_dump(mode="json")}},
+        upsert=True,
+    )
     return food_item.food_id
 
-def delete_food(_id:str,food_item:FoodItem):
-    col.update_one({"_id":_id},{"$pull":{"food_items":FoodItem}})
+def delete_food(_id:str,food_id:str):
+    return col.update_one({"_id":_id},{"$pull":{"food_items":{"food_id":food_id}}})
 
-def update_food(_id:str,food_id:str,name:str,expiry_date:date,food_type:Food_Type,price:float,quantity:int,description:str):
-    food_item = FoodItem(food_id=food_id,name=name,expiry_date=expiry_date,food_type=food_type,price=price,quantity=quantity,description=description)
+def update_food(_id:str,food_id:str,name:str,expiry_date:str,purchase_date:str,food_type:Food_Type,quantity:int,unit:str,description:str,image_uri:str,image_data:str,use_extract_feature:bool):
+    # Mongo's positional operator updates only the array item with this food_id.
+    food_item = FoodItem(
+        food_id=food_id,
+        image_uri=image_uri,
+        image_data=image_data,
+        name=name,
+        expiry_date=expiry_date,
+        purchase_date=purchase_date,
+        food_type=food_type,
+        quantity=quantity,
+        unit=unit,
+        description=description,
+        use_extract_feature=use_extract_feature,
+    )
     col.update_one(
         {"_id":_id,"food_items.food_id":food_id},
         {"$set":{"food_items.$":food_item.model_dump(mode="json")}},

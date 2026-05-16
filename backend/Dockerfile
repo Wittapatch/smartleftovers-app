@@ -8,9 +8,9 @@ ENV PYTHONUNBUFFERED=1
 RUN pip install --no-cache-dir uv
 
 COPY pyproject.toml ./
-COPY . .
+RUN uv pip install --system --no-cache -r pyproject.toml
 
-RUN uv pip install --system --no-cache -e .
+COPY . .
 
 EXPOSE 5000
 

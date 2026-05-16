@@ -5,19 +5,22 @@ services:
       dockerfile: Dockerfile
     ports:
       - "5000:5000"
-    env_file:
-      - path: ./backend/.env
-        required: false
+    environment:
+      GEMINI_KEY: ${GEMINI_KEY:?Set GEMINI_KEY in your terminal before running docker compose}
+      MONGO_DB_URI: ${MONGO_DB_URI:?Set MONGO_DB_URI in your terminal before running docker compose}
     restart: unless-stopped
 
   frontend:
     build:
-      context: .
+      context: ./frontend
       dockerfile: Dockerfile
     ports:
       - "8081:8081"
     environment:
       EXPO_PUBLIC_API_URL: http://localhost:5000
+    env_file:
+      - path: ./frontend/.env
+        required: false
     depends_on:
       - backend
     restart: unless-stopped
