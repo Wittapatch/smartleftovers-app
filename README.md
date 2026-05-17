@@ -6,7 +6,7 @@ Smart Leftovers is a food inventory app that helps users save food items, track 
 ## How to run the application
 
 ### 1. Install the following:
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/)
 	- In VS Code, install the Docker extension. Before running the program, ensure that Docker Desktop is open.
 - [Node.js](https://nodejs.org/en/download)
 	- In your terminal, run `npm install expo`
