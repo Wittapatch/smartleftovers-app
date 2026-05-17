@@ -31,6 +31,7 @@ Then, clone this GitHub repository.
 For more information, visit [Gemini API quickstart](https://ai.google.dev/gemini-api/docs/quickstart).
 ### 2.2 `MONGO_DB_URI`
 The string follows the format `"mongodb+srv://{username}:{password}@user-data.dj9ypuo.mongodb.net/?appName=user-data"`.
+
 You may use `"mongodb+srv://docker:docker@user-data.dj9ypuo.mongodb.net/?appName=user-data"`.
 
 ### 2.3 `frontend\.env`
@@ -53,7 +54,7 @@ EXPO_PUBLIC_API_URL="your_ngrok_link_here"
 Remember to run Docker Desktop first.
 
 ### Run on web
-1. Go to the project root: `cd C:\Users\witta\Documents\smartleftovers-app`
+1. Go to the project root: `cd C:\Users\{user}\Documents\smartleftovers-app`
 2. Paste the following commands
 ```Bash
 $env:GEMINI_KEY="your_gemini_key_here"
