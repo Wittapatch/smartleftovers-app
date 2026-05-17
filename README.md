@@ -50,6 +50,8 @@ EXPO_PUBLIC_API_URL="your_ngrok_link_here"
 
 ## 3. Running the application
 
+Remember to run Docker Desktop first.
+
 ### Run on web
 1. Go to the project root: `cd C:\Users\witta\Documents\smartleftovers-app`
 2. Paste the following commands
