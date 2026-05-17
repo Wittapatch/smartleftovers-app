@@ -87,8 +87,14 @@ npx expo start --tunnel --clear
 5. Scan the QR code with your camera.
 The mobile command runs Expo locally with `--tunnel` because it is more reliable than running Expo Go through Docker on Windows.
 
+## Important Notes
+
+- Web Docker mode is for browser testing. It does not create an Expo Go QR code.
+- Mobile mode should run Expo locally with `npx expo start --tunnel --clear`.
+- Firebase `EXPO_PUBLIC_*` values are public app config.
+
 ---
-# Smart Leftovers
+# About this project
 The project is split into two main folders:
 
 - `frontend/` - Expo / React Native app
@@ -326,11 +332,5 @@ EXPO_PUBLIC_API_URL=http://localhost:5000
 ```
 
 For mobile tunnel testing, set `EXPO_PUBLIC_API_URL` in the terminal to your ngrok URL before starting Expo.
-
-## Important Notes
-
-- Web Docker mode is for browser testing. It does not create an Expo Go QR code.
-- Mobile mode should run Expo locally with `npx expo start --tunnel --clear`.
-- Firebase `EXPO_PUBLIC_*` values are public app config.
 - Gemini and MongoDB values are private and should only be passed to the backend.
 - Do not commit `.env` files.
