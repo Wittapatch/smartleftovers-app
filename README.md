@@ -1,115 +1,98 @@
 # Smart Leftovers
 
-Smart Leftovers is a food inventory app that helps users save food items, track expiry dates, extract food information from photos, and ask ChefBot for leftover recipe ideas.
+![](https://i.ibb.co/QFHgnMS6/Smart-Leftovers.avif)
 
-The project is split into two main folders:
+Smart Leftovers is a food inventory app that helps users save food items, track expiry dates, extract food information from iages, and ask ChefBot for leftover recipe ideas.
+## How to run the application
 
-- `frontend/` - Expo / React Native app
-- `backend/` - Flask API connected to MongoDB and Gemini
+### 1. Install the following:
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/
+	- In VS Code, install the Docker extension. Before running the program, ensure that Docker Desktop is open.
+- [Node.js](https://nodejs.org/en/download)
+	- In your terminal, run `npm install expo`
+- On your phone, download the [Expo Go](https://expo.dev/go) application.
+- [ngrok](https://ngrok.com/download/windows)
+	- Add your authtoken `ngrok config add-authtoken "<YOUR_AUTHTOKEN>"`
 
-## Requirements
-
-Install these before running the project:
-
-- Docker Desktop
-- Node.js / npm
-- Expo Go application on your phone, for mobile testing (You can go to appstore or playstore to download it)
-
-You also need:
-
-- `GEMINI_KEY` - Gemini API key for image extraction and ChefBot
+Then, clone this GitHub repository.
+## 2. Obtain the following strings:
+- `GEMINI_KEY` - A Gemini API key used for image text extraction and ChefBot
 - `MONGO_DB_URI` - MongoDB connection string
-- `frontend/.env` - public Expo/Firebase config values
+- Create a file named `.env` in the `frontend` folder - public Expo/Firebase config values
+### 2.1 Gemini API Key
 
-Do not put `GEMINI_KEY` or `MONGO_DB_URI` in `frontend/.env`.
-
-## Get A Gemini API Key
-
-Use Google AI Studio to create a Gemini API key:
-
-[Google AI Studio API Keys](https://aistudio.google.com/app/apikey)
-
-Official Google documentation:
-
-[Gemini API quickstart](https://ai.google.dev/gemini-api/docs/quickstart)
-
-Steps:
-
-1. Open [Google AI Studio API Keys](https://aistudio.google.com/app/apikey).
-2. Sign in with your Google account.
-3. Click **Create API key**.
+1. Go to [Google AI Studio](https://aistudio.google.com/api-keys).
+2. Sign in with your Google account
+3. Click **Create API key**
 4. Choose an existing Google Cloud project or create a new one.
 5. Copy the API key.
 6. Use it as `GEMINI_KEY` when running the backend.
 
+For more information, visit [Gemini API quickstart](https://ai.google.dev/gemini-api/docs/quickstart).
+### 2.2 `MONGO_DB_URI`
+The string follows the format `"mongodb+srv://{username}:{password}@user-data.dj9ypuo.mongodb.net/?appName=user-data"`.
+You may use `"mongodb+srv://docker:docker@user-data.dj9ypuo.mongodb.net/?appName=user-data"`.
 
-## Before you run our application make sure that you have docker desktop installed and also in your vscode extension make sure you install docker as well and when you run our code open make sure your docker desktop is openend and then follow the following procedures for running our application.
+### 2.3 `frontend\.env`
+For security reasons, do not put `GEMINI_KEY` or `MONGO_DB_URI` in this file.
 
-## Run For Web
+Paste the following text into the file:
 
-Use this when you want to open the app in a browser (you have to copy this and paste it in the terminal).
+```Bash
+EXPO_PUBLIC_FIREBASE_API_KEY=AIzaSyCxksPua1lnVWkGvmf9bxv68QVPCrUmWQY
+EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN=smartleftovers-bd84f.firebaseapp.com
+EXPO_PUBLIC_FIREBASE_PROJECT_ID =smartleftovers-bd84f
+EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET=smartleftovers-bd84f.firebasestorage.app
+EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=467588280044
+EXPO_PUBLIC_FIREBASE_APP_ID=1:467588280044:web:9068234d00757419027fc9
+EXPO_PUBLIC_API_URL = https://tartly-electrostatic-adrien.ngrok-free.dev
+```
 
-From the project root:
+## 3. Running the application
 
-```powershell
-cd C:\Users\witta\Documents\smartleftovers-app
-
+### Run on web
+1. Go to the project root: `cd C:\Users\witta\Documents\smartleftovers-app`
+2. Paste the following commands
+```Bash
 $env:GEMINI_KEY="your_gemini_key_here"
-$env:MONGO_DB_URI="your_mongodb_uri_here"
+$env:MONGO_DB_URI="mongodb+srv://docker:docker@user-data.dj9ypuo.mongodb.net/?appName=user-data"
 
 docker compose up --build
 ```
 
-Then open:
+3. Open http://localhost:8081 in your browser.
+This starts the Flask backend (`http://localhost:5000`), and the Expo web frontend (`http://localhost:8081`).
 
-```text
-http://localhost:8081
-```
-
-This starts:
-
-- Flask backend: `http://localhost:5000`
-- Expo web frontend: `http://localhost:8081`
-
-## Run For Mobile
-
-Use this when you want to scan a QR code with Expo Go.
-
-Terminal 1, start only the backend in Docker (you have to copy this and paste it in the terminal):
-
-```powershell
-cd C:\Users\witta\Documents\smartleftovers-app
-
+### Run on mobile
+1. Go to the project root: `cd "C:\Users\winpi\Documents\GitHub\smartleftovers-app"`
+2. Paste the following commands
+```Bash
 $env:GEMINI_KEY="your_gemini_key_here"
-$env:MONGO_DB_URI="your_mongodb_uri_here"
+$env:MONGO_DB_URI="mongodb+srv://docker:docker@user-data.dj9ypuo.mongodb.net/?appName=user-data"
 
 docker compose up --build backend
 ```
-
-Terminal 2, expose the backend so your phone can reach it:
-
-```powershell
+3. In a second terminal, expose the backend so that it is reachable via phone
+```Bash
 ngrok http 5000
 ```
-
-
-Terminal 3, start Expo tunnel:
-
-```powershell
-$env:EXPO_PUBLIC_API_URL="https://tartly-electrostatic-adrien.ngrok-free.dev"
-```
-
-```powershell
+This will give you the ngrok link.
+4. In a third terminal, run
+```Bash
+$env:EXPO_PUBLIC_API_URL="your_ngrok_link_here"
 cd frontend
-```
-
-```powershell
 npx expo start --tunnel --clear
 ```
 
-Then scan the QR code with your mobile camera.
-
+5. Scan the QR code with your camera.
 The mobile command runs Expo locally with `--tunnel` because it is more reliable than running Expo Go through Docker on Windows.
+
+---
+# Smart Leftovers
+The project is split into two main folders:
+
+- `frontend/` - Expo / React Native app
+- `backend/` - Flask API connected to MongoDB and Gemini
 
 ## How The App Works
 
