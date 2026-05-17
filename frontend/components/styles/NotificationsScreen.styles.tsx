@@ -47,7 +47,7 @@ export const styles = StyleSheet.create({
     borderRadius: 7,
     paddingVertical: 14,
     paddingLeft: 14,
-    paddingRight: 46,
+    paddingRight: 92,
     marginBottom: 14,
     justifyContent: "center",
   },
@@ -78,9 +78,32 @@ export const styles = StyleSheet.create({
     justifyContent: "center",
   },
 
+  deleteButton: {
+    position: "absolute",
+    top: 18,
+    right: 13,
+    minWidth: 66,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: "#D0342C",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 10,
+  },
+
+  noticeButtonDisabled: {
+    opacity: 0.65,
+  },
+
   dismissText: {
     color: "#333333",
     fontSize: 24,
     lineHeight: 26,
+  },
+
+  deleteText: {
+    color: "#FFFFFF",
+    fontSize: 13,
+    fontWeight: "700",
   },
 });

@@ -88,6 +88,120 @@ const createEmptyDraft = (): FoodDraft => {
   };
 };
 
+const parseOptionalAmount = (amount: string) => {
+  const trimmedAmount = amount.trim();
+
+  if (!trimmedAmount) {
+    return null;
+  }
+
+  const parsedAmount = Number(trimmedAmount);
+
+  if (!Number.isFinite(parsedAmount) || parsedAmount < 0) {
+    return undefined;
+  }
+
+  return parsedAmount;
+};
+
+const parseFoodDate = (value: string) => {
+  // Accept dates users type in the form, then normalize them for comparison.
+  const trimmedValue = value.trim();
+
+  if (!/^\d{1,2}\/\d{1,2}\/\d{2,4}$/.test(trimmedValue)) {
+    return null;
+  }
+
+  const parts = trimmedValue.split("/");
+
+  if (parts.length !== 3) {
+    return null;
+  }
+
+  const day = Number(parts[0]);
+  const month = Number(parts[1]);
+  const yearPart = Number(parts[2]);
+  const year = yearPart < 100 ? 2000 + yearPart : yearPart;
+
+  if (!day || !month || !year) {
+    return null;
+  }
+
+  const parsedDate = new Date(year, month - 1, day);
+  parsedDate.setHours(0, 0, 0, 0);
+
+  if (
+    parsedDate.getDate() !== day ||
+    parsedDate.getMonth() !== month - 1 ||
+    parsedDate.getFullYear() !== year
+  ) {
+    return null;
+  }
+
+  return parsedDate;
+};
+
+const getDateValidationError = (
+  expiryDateValue: string,
+  purchaseDateValue: string,
+) => {
+  // Keep invalid dates from reaching the backend and confusing expiry logic.
+  const expiryText = expiryDateValue.trim();
+  const purchaseText = purchaseDateValue.trim();
+  const expiryDate = expiryText ? parseFoodDate(expiryText) : null;
+  const purchaseDate = purchaseText ? parseFoodDate(purchaseText) : null;
+
+  if (expiryText && !expiryDate) {
+    return "Expiry date must use DD/MM/YY, for example 17/05/26.";
+  }
+
+  if (purchaseText && !purchaseDate) {
+    return "Purchase date must use DD/MM/YY, for example 17/05/26.";
+  }
+
+  if (expiryDate && purchaseDate && purchaseDate.getTime() > expiryDate.getTime()) {
+    return "Purchase date cannot be after expiry date.";
+  }
+
+  return "";
+};
+
+const isFoodExpired = (food: FoodItem) => {
+  // Home hides expired foods, but the backend keeps them for notification cleanup.
+  if (!food.expiryDate) {
+    return false;
+  }
+
+  const expiryDate = parseFoodDate(food.expiryDate);
+
+  if (!expiryDate) {
+    return false;
+  }
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  return expiryDate.getTime() < today.getTime();
+};
+
+const isExpiryDateTextExpired = (expiryDateText: string) => {
+  // Used after saving so the success message can explain why an item disappeared.
+  if (!expiryDateText) {
+    return false;
+  }
+
+  const expiryDate = parseFoodDate(expiryDateText);
+
+  if (!expiryDate) {
+    return false;
+  }
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  return expiryDate.getTime() < today.getTime();
+};
+
 const getDisplayImageUri = (food: FoodItem) => {
   // Web cannot display local device file paths, so prefer stored base64 data there.
   if (food.imageData) {
@@ -139,6 +253,9 @@ export default function HomeScreen() {
   const [showFormModal, setShowFormModal] = useState(false);
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [showIngredientModal, setShowIngredientModal] = useState(false);
+  const [formErrorMessage, setFormErrorMessage] = useState("");
+  const [homeStatusMessage, setHomeStatusMessage] = useState("");
+  const [savingFood, setSavingFood] = useState(false);
 
   // ChefBot ingredient selection state.
   const [selectedChatFoodIds, setSelectedChatFoodIds] = useState<string[]>([]);
@@ -155,6 +272,19 @@ export default function HomeScreen() {
 
   // null means the form is adding a new food; an id means the form is editing.
   const [editingFoodId, setEditingFoodId] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Auto-hide the save/update banner after a short moment.
+    if (!homeStatusMessage) {
+      return;
+    }
+
+    const timeoutId = setTimeout(() => {
+      setHomeStatusMessage("");
+    }, 3000);
+
+    return () => clearTimeout(timeoutId);
+  }, [homeStatusMessage]);
 
   const displayedFoods = useMemo(() => {
     // Keep filtering/sorting derived from foods so the saved list remains unchanged.
@@ -215,7 +345,7 @@ export default function HomeScreen() {
         expiry_date: food.expiryDate || null,
         purchase_date: food.purchaseDate || null,
         food_type: food.type || null,
-        quantity: food.amount ? Number(food.amount) : null,
+        quantity: parseOptionalAmount(food.amount) ?? null,
         unit: food.unit || null,
         description: food.description || null,
         use_extract_feature: food.useExtractFeature,
@@ -278,9 +408,11 @@ export default function HomeScreen() {
       const savedFoods = Array.isArray(data.food_items)
         ? data.food_items.map(mapStoredFoodToFoodItem)
         : [];
+      // Expired items are intentionally excluded from Home, not deleted here.
+      const activeFoods = savedFoods.filter((food) => !isFoodExpired(food));
 
-      setFoods(savedFoods);
-      syncMissingImageData(savedFoods, user);
+      setFoods(activeFoods);
+      syncMissingImageData(activeFoods, user);
 
     } catch (error: any) {
       Alert.alert("Load food failed", getFriendlyErrorMessage(error, "Could not load your food. Please try again."));
@@ -452,7 +584,7 @@ export default function HomeScreen() {
           expiry_date: food.expiryDate || null,
           purchase_date: food.purchaseDate || null,
           food_type: food.type || null,
-          quantity: food.amount ? Number(food.amount) : null,
+          quantity: parseOptionalAmount(food.amount) ?? null,
           unit: food.unit || null,
           description: food.description || null,
           use_extract_feature: food.useExtractFeature,
@@ -524,17 +656,41 @@ export default function HomeScreen() {
 
   const saveFood = async () => {
     // The same form handles both creating a new food and editing an existing one.
+    setFormErrorMessage("");
+
     if (!API_URL) {
+      setFormErrorMessage("Missing backend URL. Check EXPO_PUBLIC_API_URL.");
       Alert.alert("Error", "Missing EXPO_PUBLIC_API_URL");
       return;
     }
 
     if (draft.name.trim() === "") {
+      setFormErrorMessage("Please enter a food name before saving.");
       Alert.alert("Missing name", "Name is important. Please enter food name.");
       return;
     }
 
+    const parsedAmount = parseOptionalAmount(draft.amount);
+
+    if (parsedAmount === undefined) {
+      setFormErrorMessage("Amount must be a number, such as 1 or 0.5. You can also leave it blank.");
+      Alert.alert("Invalid amount", "Please enter a valid amount, such as 1, 0.5, or leave it blank.");
+      return;
+    }
+
+    const dateValidationError = getDateValidationError(
+      draft.expiryDate,
+      draft.purchaseDate,
+    );
+
+    if (dateValidationError) {
+      setFormErrorMessage(dateValidationError);
+      Alert.alert("Invalid date", dateValidationError);
+      return;
+    }
+
     let imageData = draft.imageData;
+    const savedFoodWillBeHidden = isExpiryDateTextExpired(draft.expiryDate);
 
     try {
       // Convert local image files to base64 before saving, when possible.
@@ -546,11 +702,13 @@ export default function HomeScreen() {
     if (editingFoodId) {
       // Editing updates the existing backend item and then replaces it locally.
       if (!currentUser) {
+        setFormErrorMessage("Please log in again before saving.");
         Alert.alert("Not logged in", "Please log in again.");
         return;
       }
 
       try {
+        setSavingFood(true);
         const { data, response } = await apiJsonFetch<FoodWriteResponse>("/update-food", {
           method: "PUT",
           body: JSON.stringify({
@@ -562,7 +720,7 @@ export default function HomeScreen() {
             expiry_date: draft.expiryDate || null,
             purchase_date: draft.purchaseDate || null,
             food_type: draft.type || null,
-            quantity: draft.amount ? Number(draft.amount) : null,
+            quantity: parsedAmount,
             unit: draft.unit || null,
             description: draft.description || null,
             use_extract_feature: draft.useExtractFeature,
@@ -570,42 +728,51 @@ export default function HomeScreen() {
         });
 
         if (!response.ok) {
+          setFormErrorMessage(getFriendlyErrorMessage(data.error, "Could not update this food. Please try again."));
           Alert.alert("Update food failed", getFriendlyErrorMessage(data.error, "Could not update this food. Please try again."));
           return;
         }
       } catch (error: any) {
+        setFormErrorMessage(getFriendlyErrorMessage(error, "Could not update this food. Please try again."));
         Alert.alert("Update food failed", getFriendlyErrorMessage(error, "Could not update this food. Please try again."));
         return;
+      } finally {
+        setSavingFood(false);
       }
 
-      setFoods((currentFoods) =>
-        // Update only the edited food in local state.
-        currentFoods.map((food) =>
-          food.id === editingFoodId
-            ? {
-                ...food,
-                imageUri: draft.imageUri,
-                imageData,
-                name: draft.name,
-                type: draft.type,
-                expiryDate: draft.expiryDate,
-                purchaseDate: draft.purchaseDate,
-                amount: draft.amount,
-                unit: draft.unit,
-                description: draft.description,
-                useExtractFeature: draft.useExtractFeature,
-              }
-            : food,
-        ),
-      );
+      const updatedFood: FoodItem = {
+        id: editingFoodId,
+        imageUri: draft.imageUri,
+        imageData,
+        name: draft.name,
+        type: draft.type,
+        expiryDate: draft.expiryDate,
+        purchaseDate: draft.purchaseDate,
+        amount: draft.amount,
+        unit: draft.unit,
+        description: draft.description,
+        useExtractFeature: draft.useExtractFeature,
+      };
+
+      setFoods((currentFoods) => {
+        if (isFoodExpired(updatedFood)) {
+          return currentFoods.filter((food) => food.id !== editingFoodId);
+        }
+
+        return currentFoods.map((food) =>
+          food.id === editingFoodId ? updatedFood : food,
+        );
+      });
     } else {
       // Adding creates a new backend item and uses the returned food_id locally.
       if (!currentUser) {
+        setFormErrorMessage("Please log in again before saving.");
         Alert.alert("Not logged in", "Please log in again.");
         return;
       }
 
       try {
+        setSavingFood(true);
         const { data, response } = await apiJsonFetch<FoodWriteResponse>("/add-food", {
           method: "POST",
           body: JSON.stringify({
@@ -616,18 +783,20 @@ export default function HomeScreen() {
             expiry_date: draft.expiryDate || null,
             purchase_date: draft.purchaseDate || null,
             food_type: draft.type || null,
-            quantity: draft.amount ? Number(draft.amount) : null,
+            quantity: parsedAmount,
             unit: draft.unit || null,
             description: draft.description || null,
             use_extract_feature: draft.useExtractFeature,
           }),
         });
         if (!response.ok) {
+          setFormErrorMessage(getFriendlyErrorMessage(data.error, "Could not add this food. Please try again."));
           Alert.alert("Add food failed", getFriendlyErrorMessage(data.error, "Could not add this food. Please try again."));
           return;
         }
 
         if (!data.food_id) {
+          setFormErrorMessage("The backend saved no food id. Please try again.");
           Alert.alert("Add food failed", "Backend did not return a food id.");
           return;
         }
@@ -646,15 +815,28 @@ export default function HomeScreen() {
           description: draft.description,
           useExtractFeature: draft.useExtractFeature,
         };
-        setFoods((currentFoods) => [newFood, ...currentFoods]);
+        if (!isFoodExpired(newFood)) {
+          setFoods((currentFoods) => [newFood, ...currentFoods]);
+        }
       } catch (error: any) {
+        setFormErrorMessage(getFriendlyErrorMessage(error, "Could not add this food. Please try again."));
         Alert.alert("Add food failed", getFriendlyErrorMessage(error, "Could not add this food. Please try again."));
         return;
+      } finally {
+        setSavingFood(false);
       }
     }
 
     setShowFormModal(false);
     setEditingFoodId(null);
+    setFormErrorMessage("");
+    setHomeStatusMessage(
+      savedFoodWillBeHidden
+        ? "Food saved as expired and hidden from Home. Check Notifications to delete it."
+        : editingFoodId
+          ? "Food updated successfully."
+          : "Food saved successfully.",
+    );
     setDraft(createEmptyDraft());
   };
 
@@ -750,6 +932,12 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
+      {homeStatusMessage ? (
+        <View style={styles.statusBanner}>
+          <Text style={styles.statusBannerText}>{homeStatusMessage}</Text>
+        </View>
+      ) : null}
+
       {/* Functional render states: loading, empty inventory, or the filtered food list. */}
       {loadingFoods ? (
         <View style={styles.emptyBox}>
@@ -805,9 +993,12 @@ export default function HomeScreen() {
         onCancel={() => {
           setShowFormModal(false);
           setEditingFoodId(null);
+          setFormErrorMessage("");
         }}
+        errorMessage={formErrorMessage}
         onExtract={extractDraftImage}
         onSave={saveFood}
+        saving={savingFood}
         setDraft={setDraft}
       />
 

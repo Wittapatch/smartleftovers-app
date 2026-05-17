@@ -13,7 +13,7 @@ class FoodItem(BaseModel):
     expiry_date:str | None = None
     purchase_date:str|None = None
     food_type:Food_Type | None = None
-    quantity:int|None = Field(None,ge=0)
+    quantity:float|None = Field(None,ge=0)
     unit:str|None = None
     description:str|None = None
     use_extract_feature:bool = False

@@ -20,8 +20,16 @@ interface FoodListResponse {
   error?: string;
 }
 
+interface FoodWriteResponse {
+  error?: string;
+}
+
+type NoticeKind = "expired" | "expiry" | "restock";
+
 interface Notice {
   id: string;
+  foodId: string;
+  kind: NoticeKind;
   title: string;
   message: string;
 }
@@ -65,6 +73,8 @@ const createNotices = (
     if (settings.restockNotifications && quantity === 0) {
       notices.push({
         id: `${food.food_id}-restock`,
+        foodId: food.food_id,
+        kind: "restock",
         title: "Restock notice",
         message: `${foodName} is empty.`,
       });
@@ -77,13 +87,23 @@ const createNotices = (
         (expiryDate.getTime() - today.getTime()) / 86400000,
       );
 
-      if (
+      if (settings.expiryNotifications && daysUntilExpiry < 0) {
+        notices.push({
+          id: `${food.food_id}-expired`,
+          foodId: food.food_id,
+          kind: "expired",
+          title: "Expired food",
+          message: `${foodName} has expired (${food.expiry_date}) and is hidden from Home. Delete removes it from your account.`,
+        });
+      } else if (
         settings.expiryNotifications &&
         daysUntilExpiry >= 0 &&
         daysUntilExpiry <= 7
       ) {
         notices.push({
           id: `${food.food_id}-expiry`,
+          foodId: food.food_id,
+          kind: "expiry",
           title: "Near expiry notice",
           message: `${foodName} will expire soon (${food.expiry_date})`,
         });
@@ -98,6 +118,8 @@ export default function NotificationsScreen() {
   const API_URL = getApiUrl();
 
   const [loading, setLoading] = useState(true);
+  const [confirmingNoticeId, setConfirmingNoticeId] = useState<string | null>(null);
+  const [deletingNoticeId, setDeletingNoticeId] = useState<string | null>(null);
   const [notices, setNotices] = useState<Notice[]>([]);
 
   const loadNotices = useCallback(async (user: User) => {
@@ -153,9 +175,62 @@ export default function NotificationsScreen() {
   );
 
   const dismissNotice = (noticeId: string) => {
+    // Non-expired notices are only cleared from the current screen.
+    setConfirmingNoticeId(null);
     setNotices((currentNotices) =>
       currentNotices.filter((notice) => notice.id !== noticeId),
     );
+  };
+
+  const handleExpiredDeletePress = (notice: Notice) => {
+    // Web and mobile share this two-tap confirmation instead of platform dialogs.
+    if (confirmingNoticeId !== notice.id) {
+      setConfirmingNoticeId(notice.id);
+      return;
+    }
+
+    deleteExpiredFood(notice);
+  };
+
+  const deleteExpiredFood = async (notice: Notice) => {
+    // Expired-food deletion removes the saved food from MongoDB through the API.
+    const user = auth.currentUser;
+
+    if (!API_URL) {
+      Alert.alert("Error", "Missing EXPO_PUBLIC_API_URL");
+      return;
+    }
+
+    if (!user) {
+      Alert.alert("Not logged in", "Please log in again.");
+      return;
+    }
+
+    try {
+      setDeletingNoticeId(notice.id);
+
+      const { data, response } = await apiJsonFetch<FoodWriteResponse>("/delete-food", {
+        method: "DELETE",
+        body: JSON.stringify({
+          _id: user.uid,
+          food_id: notice.foodId,
+        }),
+      });
+
+      if (!response.ok) {
+        Alert.alert("Delete food failed", getFriendlyErrorMessage(data.error, "Could not delete this food. Please try again."));
+        return;
+      }
+
+      setConfirmingNoticeId(null);
+      setNotices((currentNotices) =>
+        currentNotices.filter((currentNotice) => currentNotice.foodId !== notice.foodId),
+      );
+    } catch (error: any) {
+      Alert.alert("Delete food failed", getFriendlyErrorMessage(error, "Could not delete this food. Please try again."));
+    } finally {
+      setDeletingNoticeId(null);
+    }
   };
 
   const renderNotice = ({ item }: { item: Notice }) => {
@@ -167,10 +242,28 @@ export default function NotificationsScreen() {
         </View>
 
         <TouchableOpacity
-          style={styles.dismissButton}
-          onPress={() => dismissNotice(item.id)}
+          style={[
+            item.kind === "expired" ? styles.deleteButton : styles.dismissButton,
+            deletingNoticeId === item.id && styles.noticeButtonDisabled,
+          ]}
+          onPress={() =>
+            item.kind === "expired" ? handleExpiredDeletePress(item) : dismissNotice(item.id)
+          }
+          disabled={deletingNoticeId === item.id}
         >
-          <Text style={styles.dismissText}>x</Text>
+          <Text
+            style={
+              item.kind === "expired" ? styles.deleteText : styles.dismissText
+            }
+          >
+            {item.kind === "expired"
+              ? deletingNoticeId === item.id
+                ? "Deleting..."
+                : confirmingNoticeId === item.id
+                  ? "Confirm"
+                : "Delete"
+              : "x"}
+          </Text>
         </TouchableOpacity>
       </View>
     );
@@ -180,7 +273,10 @@ export default function NotificationsScreen() {
     <View style={styles.container}>
       <TouchableOpacity
         style={styles.clearButton}
-        onPress={() => setNotices([])}
+        onPress={() => {
+          setConfirmingNoticeId(null);
+          setNotices([]);
+        }}
         disabled={notices.length === 0}
       >
         <Text style={styles.clearText}>Clear all</Text>

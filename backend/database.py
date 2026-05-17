@@ -56,7 +56,7 @@ def get_foods(_id:str):
 
     return user_info.get("food_items", [])
 
-def add_food(_id:str,name:str,expiry_date:str,purchase_date:str,food_type:Food_Type,quantity:int,unit:str,description:str,image_uri:str,image_data:str,use_extract_feature:bool):
+def add_food(_id:str,name:str,expiry_date:str,purchase_date:str,food_type:Food_Type,quantity:float|None,unit:str,description:str,image_uri:str,image_data:str,use_extract_feature:bool):
     # Pydantic validates and gives each item a unique food_id before saving.
     food_item = FoodItem(
         image_uri=image_uri,
@@ -80,7 +80,7 @@ def add_food(_id:str,name:str,expiry_date:str,purchase_date:str,food_type:Food_T
 def delete_food(_id:str,food_id:str):
     return col.update_one({"_id":_id},{"$pull":{"food_items":{"food_id":food_id}}})
 
-def update_food(_id:str,food_id:str,name:str,expiry_date:str,purchase_date:str,food_type:Food_Type,quantity:int,unit:str,description:str,image_uri:str,image_data:str,use_extract_feature:bool):
+def update_food(_id:str,food_id:str,name:str,expiry_date:str,purchase_date:str,food_type:Food_Type,quantity:float|None,unit:str,description:str,image_uri:str,image_data:str,use_extract_feature:bool):
     # Mongo's positional operator updates only the array item with this food_id.
     food_item = FoodItem(
         food_id=food_id,

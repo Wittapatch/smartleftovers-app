@@ -17,8 +17,10 @@ interface FoodFormModalProps {
   // The parent owns draft state so save/cancel/edit behavior stays in HomeScreen.
   draft: FoodDraft;
   editingFoodId: string | null;
+  errorMessage: string;
   loading: boolean;
   previewImageUri: string | null;
+  saving: boolean;
   visible: boolean;
   onCancel: () => void;
   onExtract: () => void;
@@ -29,8 +31,10 @@ interface FoodFormModalProps {
 export function FoodFormModal({
   draft,
   editingFoodId,
+  errorMessage,
   loading,
   previewImageUri,
+  saving,
   visible,
   onCancel,
   onExtract,
@@ -72,9 +76,10 @@ export function FoodFormModal({
             </TouchableOpacity>
 
             {/* Each input updates one field in the draft without saving to the backend yet. */}
+            <Text style={styles.inputLabel}>Name *</Text>
             <TextInput
               style={styles.input}
-              placeholder="Name *"
+              placeholder="Food name"
               placeholderTextColor="#999999"
               value={draft.name}
               onChangeText={(text) =>
@@ -82,9 +87,10 @@ export function FoodFormModal({
               }
             />
 
+            <Text style={styles.inputLabel}>Type</Text>
             <TextInput
               style={styles.input}
-              placeholder="Type"
+              placeholder="Food type"
               placeholderTextColor="#999999"
               value={draft.type}
               onChangeText={(text) =>
@@ -92,9 +98,10 @@ export function FoodFormModal({
               }
             />
 
+            <Text style={styles.inputLabel}>Expiry Date</Text>
             <TextInput
               style={styles.input}
-              placeholder="Expiry date"
+              placeholder="DD/MM/YY"
               placeholderTextColor="#999999"
               value={draft.expiryDate}
               onChangeText={(text) =>
@@ -105,9 +112,10 @@ export function FoodFormModal({
               }
             />
 
+            <Text style={styles.inputLabel}>Purchase Date</Text>
             <TextInput
               style={styles.input}
-              placeholder="Purchase date"
+              placeholder="DD/MM/YY"
               placeholderTextColor="#999999"
               value={draft.purchaseDate}
               onChangeText={(text) =>
@@ -118,9 +126,10 @@ export function FoodFormModal({
               }
             />
 
+            <Text style={styles.inputLabel}>Amount</Text>
             <TextInput
               style={styles.input}
-              placeholder="Amount"
+              placeholder="Number, for example 1 or 0.5"
               placeholderTextColor="#999999"
               value={draft.amount}
               keyboardType="numeric"
@@ -129,9 +138,10 @@ export function FoodFormModal({
               }
             />
 
+            <Text style={styles.inputLabel}>Unit</Text>
             <TextInput
               style={styles.input}
-              placeholder="Unit"
+              placeholder="kg, g, pieces, bottle"
               placeholderTextColor="#999999"
               value={draft.unit}
               onChangeText={(text) =>
@@ -139,6 +149,7 @@ export function FoodFormModal({
               }
             />
 
+            <Text style={styles.inputLabel}>Description</Text>
             <TextInput
               style={[styles.input, styles.descriptionInput]}
               placeholder="Description"
@@ -153,8 +164,21 @@ export function FoodFormModal({
               }
             />
 
-            <TouchableOpacity style={styles.saveButton} onPress={onSave}>
-              <Text style={styles.saveButtonText}>Save</Text>
+            {errorMessage ? (
+              <Text style={styles.formErrorText}>{errorMessage}</Text>
+            ) : null}
+
+            <TouchableOpacity
+              style={[
+                styles.saveButton,
+                saving && styles.saveButtonDisabled,
+              ]}
+              onPress={onSave}
+              disabled={saving}
+            >
+              <Text style={styles.saveButtonText}>
+                {saving ? "Saving..." : "Save"}
+              </Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.cancelButton} onPress={onCancel}>

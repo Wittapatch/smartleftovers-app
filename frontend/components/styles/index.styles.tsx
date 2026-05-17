@@ -231,6 +231,29 @@ export const styles = StyleSheet.create({
     textAlign: "center",
   },
 
+  statusBanner: {
+    position: "absolute",
+    top: 54,
+    left: 20,
+    right: 20,
+    zIndex: 30,
+    minHeight: 42,
+    borderRadius: 8,
+    backgroundColor: "#E8F7EE",
+    borderWidth: 1,
+    borderColor: "#35C759",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 14,
+  },
+
+  statusBannerText: {
+    color: "#1F7A3A",
+    fontSize: 14,
+    fontWeight: "700",
+    textAlign: "center",
+  },
+
   closeCameraButton: {
     position: "absolute",
     top: 55,
@@ -437,6 +460,14 @@ export const styles = StyleSheet.create({
     fontWeight: "700",
   },
 
+  inputLabel: {
+    color: "#333333",
+    fontSize: 13,
+    fontWeight: "700",
+    marginBottom: 6,
+    marginLeft: 4,
+  },
+
   input: {
     height: 46,
     backgroundColor: "#F0F1F6",
@@ -454,6 +485,14 @@ export const styles = StyleSheet.create({
     textAlignVertical: "top",
   },
 
+  formErrorText: {
+    color: "#D0342C",
+    fontSize: 14,
+    fontWeight: "600",
+    marginBottom: 8,
+    textAlign: "center",
+  },
+
   saveButton: {
     height: 48,
     borderRadius: 24,
@@ -461,6 +500,10 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     marginTop: 6,
+  },
+
+  saveButtonDisabled: {
+    opacity: 0.65,
   },
 
   saveButtonText: {
