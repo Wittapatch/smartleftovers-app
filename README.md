@@ -45,7 +45,7 @@ EXPO_PUBLIC_FIREBASE_PROJECT_ID =smartleftovers-bd84f
 EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET=smartleftovers-bd84f.firebasestorage.app
 EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=467588280044
 EXPO_PUBLIC_FIREBASE_APP_ID=1:467588280044:web:9068234d00757419027fc9
-EXPO_PUBLIC_API_URL = https://tartly-electrostatic-adrien.ngrok-free.dev
+EXPO_PUBLIC_API_URL="your_ngrok_link_here"
 ```
 
 ## 3. Running the application
