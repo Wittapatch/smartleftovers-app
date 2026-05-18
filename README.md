@@ -35,6 +35,7 @@ The string follows the format `"mongodb+srv://{username}:{password}@user-data.dj
 You may use `"mongodb+srv://docker:docker@user-data.dj9ypuo.mongodb.net/?appName=user-data"`.
 
 ### 2.3 `frontend\.env`
+Create a .env within the frontend folder.
 For security reasons, do not put `GEMINI_KEY` or `MONGO_DB_URI` in this file.
 
 Paste the following text into the file:
