@@ -78,6 +78,26 @@ export const styles = StyleSheet.create({
     borderColor: "#D6D6D6",
   },
 
+  feedbackText: {
+    backgroundColor: "#E8F5E9",
+    borderColor: "#8BC34A",
+    borderRadius: 12,
+    borderWidth: 1,
+    color: "#1B5E20",
+    fontSize: 13,
+    lineHeight: 18,
+    marginBottom: 10,
+    marginTop: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 9,
+  },
+
+  feedbackErrorText: {
+    backgroundColor: "#FDECEA",
+    borderColor: "#F5A29A",
+    color: "#B3261E",
+  },
+
   smallButton: {
     height: 40,
     backgroundColor: "#F0F1F6",

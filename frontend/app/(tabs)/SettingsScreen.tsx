@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import {Alert,KeyboardAvoidingView,Platform,ScrollView,Switch,Text,TextInput,TouchableOpacity,View} from "react-native";
 import { useRouter } from "expo-router";
-import {EmailAuthProvider,reauthenticateWithCredential,signOut,updateEmail,updatePassword} from "firebase/auth";
+import {EmailAuthProvider,reauthenticateWithCredential,signOut,updatePassword,verifyBeforeUpdateEmail} from "firebase/auth";
 import { auth } from "@/config/firebaseConfig";
 import { getNotificationSettings, saveNotificationSettings } from "@/lib/notificationSettings";
 import { getFriendlyErrorMessage } from "@/lib/userFriendlyError";
@@ -25,10 +25,39 @@ export default function SettingsScreen() {
   const [newEmail, setNewEmail] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
+  const [feedbackMessage, setFeedbackMessage] = useState("");
+  const [feedbackType, setFeedbackType] = useState<"success" | "error">("success");
 
   // Notification toggle states
   const [expiryNotification, setExpiryNotification] = useState(false);
   const [restockNotification, setRestockNotification] = useState(false);
+
+  const showFeedback = (
+    title: string,
+    message: string,
+    type: "success" | "error" = "success",
+  ) => {
+    // Browser alerts are more reliable than React Native Alert on web.
+    setFeedbackType(type);
+    setFeedbackMessage(message);
+
+    if (Platform.OS === "web" && typeof window !== "undefined") {
+      window.alert(`${title}\n${message}`);
+      return;
+    }
+
+    Alert.alert(title, message);
+  };
+
+  const getTechnicalErrorMessage = (error: unknown) => {
+    return (
+      error instanceof Error
+        ? error.message
+        : typeof error === "string"
+          ? error
+          : ""
+    );
+  };
 
   useEffect(() => {
     const loadNotificationSettings = async () => {
@@ -38,7 +67,11 @@ export default function SettingsScreen() {
         setExpiryNotification(settings.expiryNotifications);
         setRestockNotification(settings.restockNotifications);
       } catch (error: any) {
-        Alert.alert("Settings failed", getFriendlyErrorMessage(error, "Could not load settings."));
+        showFeedback(
+          "Settings failed",
+          getFriendlyErrorMessage(error, "Could not load settings."),
+          "error",
+        );
       }
     };
 
@@ -48,26 +81,36 @@ export default function SettingsScreen() {
   const updateExpiryNotification = async (value: boolean) => {
     // Save expiry reminder preference immediately when the switch changes.
     try {
+      setFeedbackMessage("");
       setExpiryNotification(value);
       await saveNotificationSettings({
         expiryNotifications: value,
         restockNotifications: restockNotification,
       });
     } catch (error: any) {
-      Alert.alert("Settings failed", getFriendlyErrorMessage(error, "Could not update settings."));
+      showFeedback(
+        "Settings failed",
+        getFriendlyErrorMessage(error, "Could not update settings."),
+        "error",
+      );
     }
   };
 
   const updateRestockNotification = async (value: boolean) => {
     // Save restock reminder preference immediately when the switch changes.
     try {
+      setFeedbackMessage("");
       setRestockNotification(value);
       await saveNotificationSettings({
         expiryNotifications: expiryNotification,
         restockNotifications: value,
       });
     } catch (error: any) {
-      Alert.alert("Settings failed", getFriendlyErrorMessage(error, "Could not update settings."));
+      showFeedback(
+        "Settings failed",
+        getFriendlyErrorMessage(error, "Could not update settings."),
+        "error",
+      );
     }
   };
 
@@ -97,39 +140,60 @@ export default function SettingsScreen() {
   // Change user's email
   const handleChangeEmail = async () => {
     try {
-      if (newEmail.trim() === "") {
-        Alert.alert("Error", "Please enter a new email");
+      setFeedbackMessage("");
+
+      const trimmedNewEmail = newEmail.trim();
+
+      if (trimmedNewEmail === "") {
+        showFeedback("Error", "Please enter a new email.", "error");
         return;
       }
 
       const user = await reauthenticateUser();
 
-      await updateEmail(user, newEmail);
+      if (trimmedNewEmail.toLowerCase() === user.email?.toLowerCase()) {
+        showFeedback("Error", "The new email is the same as the current email.", "error");
+        return;
+      }
 
-      Alert.alert("Success", "Email updated successfully");
+      // Send a Firebase verification link to the new email. The email changes only after
+      // the user clicks that link, which works better across Firebase security settings.
+      await verifyBeforeUpdateEmail(user, trimmedNewEmail);
+
+      showFeedback(
+        "Verification email sent",
+        `Please open ${trimmedNewEmail} and click the Firebase verification link. The email will change after verification. If you do not see it, check your spam or junk folder too.`,
+      );
 
       setNewEmail("");
       setCurrentPassword("");
     } catch (error: any) {
-      Alert.alert("Change email failed", getFriendlyErrorMessage(error, "Could not update your email. Please try again."));
+      const technicalMessage = getTechnicalErrorMessage(error);
+      showFeedback(
+        "Change email failed",
+        `${getFriendlyErrorMessage(error, "Could not update your email. Please try again.")}${technicalMessage ? `\n\nFirebase error: ${technicalMessage}` : ""}`,
+        "error",
+      );
     }
   };
 
   // Change user's password
   const handleChangePassword = async () => {
     try {
+      setFeedbackMessage("");
+
       if (newPassword.trim() === "" || confirmNewPassword.trim() === "") {
-        Alert.alert("Error", "Please enter your new password twice");
+        showFeedback("Error", "Please enter your new password twice.", "error");
         return;
       }
 
       if (newPassword.length < 6) {
-        Alert.alert("Error", "Password must be at least 6 characters");
+        showFeedback("Error", "Password must be at least 6 characters.", "error");
         return;
       }
 
       if (newPassword !== confirmNewPassword) {
-        Alert.alert("Error", "New passwords do not match");
+        showFeedback("Error", "New passwords do not match.", "error");
         return;
       }
 
@@ -137,26 +201,35 @@ export default function SettingsScreen() {
 
       await updatePassword(user, newPassword);
 
-      Alert.alert("Success", "Password updated successfully");
+      showFeedback("Success", "Password updated successfully.");
 
       setNewPassword("");
       setConfirmNewPassword("");
       setCurrentPassword("");
     } catch (error: any) {
-      Alert.alert("Change password failed", getFriendlyErrorMessage(error, "Could not update your password. Please try again."));
+      showFeedback(
+        "Change password failed",
+        getFriendlyErrorMessage(error, "Could not update your password. Please try again."),
+        "error",
+      );
     }
   };
 
   // Log out current user
   const logout = async () => {
     try {
+      setFeedbackMessage("");
       // Clear the web-only session marker before ending the Firebase session.
       clearWebAuthSession();
       await signOut(auth);
 
       router.replace("/login");
     } catch (error: any) {
-      Alert.alert("Logout failed", getFriendlyErrorMessage(error, "Could not log out. Please try again."));
+      showFeedback(
+        "Logout failed",
+        getFriendlyErrorMessage(error, "Could not log out. Please try again."),
+        "error",
+      );
     }
   };
 
@@ -179,6 +252,17 @@ export default function SettingsScreen() {
           {/* Account dropdown */}
           {showAccountOptions && (
             <View style={styles.dropdownBox}>
+              {feedbackMessage ? (
+                <Text
+                  style={[
+                    styles.feedbackText,
+                    feedbackType === "error" && styles.feedbackErrorText,
+                  ]}
+                >
+                  {feedbackMessage}
+                </Text>
+              ) : null}
+
               <Text style={styles.label}>Current password</Text>
 
               <TextInput
