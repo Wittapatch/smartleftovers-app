@@ -1,8 +1,8 @@
 import { Platform } from "react-native";
 import { getApiUrl } from "./api";
 
-// Sends a selected food image to the backend, then converts Gemini's JSON text
-// into form fields that the user can review before saving.
+// This file sends a food photo to the backend for Gemini to analyze.
+// The result is used to fill the add-food form.
 
 export interface ExtractedFoodData {
     name:string;
@@ -15,7 +15,7 @@ export interface ExtractedFoodData {
 }
 
 function cleanGeminiJsonText(text: string) {
-    // Gemini can occasionally wrap JSON in markdown fences; remove those first.
+    // Sometimes Gemini wraps JSON in markdown, so we clean that first.
     return text.replace(/```json/g, "").replace(/```/g,"").trim();
 }
 
@@ -28,7 +28,7 @@ export async function analyzeImageWithGemini(localUri: string) {
 
     const formData = new FormData();
 
-    // Web gives a blob URL, while native expects a { uri, name, type } file object.
+    // Web and mobile attach image files in different ways, so we handle both.
     if (Platform.OS === "web") {
         const imageResponse = await fetch(localUri);
         const imageBlob = await imageResponse.blob();
@@ -61,7 +61,7 @@ export async function analyzeImageWithGemini(localUri: string) {
     let extractedData: ExtractedFoodData | null = null;
 
     try {
-        // Keep the raw Gemini text too, so the UI can show/debug extraction failures.
+        // Keep the raw Gemini text too in case the JSON parsing fails.
         const cleanedText = cleanGeminiJsonText(rawText);
         extractedData = JSON.parse(cleanedText);
     } catch (error) {

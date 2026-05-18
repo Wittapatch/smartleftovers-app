@@ -8,8 +8,8 @@ import 'react-native-reanimated';
 import { auth } from '@/config/firebaseConfig';
 import { clearWebAuthSession, hasWebAuthSession } from '@/lib/webAuthSession';
 
-// Root layout controls the top-level navigation stack and protects the app tabs
-// from opening on web when the user has not logged in during this browser tab.
+// This is the main app layout.
+// It controls the login, sign up, and tab screens.
 
 export const unstable_settings = {
   anchor: '(tabs)',
@@ -19,7 +19,7 @@ export default function RootLayout() {
   const router = useRouter();
 
   useEffect(() => {
-    // On web, force a fresh login when the tab did not log in this session.
+    // On web, send the user back to login if this tab has no login session.
     if (hasWebAuthSession()) {
       return;
     }
@@ -32,7 +32,7 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider value={DefaultTheme}>
-      {/* Expo Router maps these screen names to files and folders inside app/. */}
+      {/* Expo Router connects these screen names to files in the app folder. */}
       <Stack>
         <Stack.Screen name="login" options={{ headerShown: false }} />
         <Stack.Screen name="signUp" options={{ headerShown: false }} />

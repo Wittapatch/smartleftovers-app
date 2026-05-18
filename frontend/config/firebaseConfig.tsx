@@ -1,11 +1,11 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 
-// This file initializes Firebase once and exports the Auth object used by login,
-// signup, settings, and protected screens.
+// This file sets up Firebase for the app.
+// Other files import auth from here when they need login or account features.
 
 const firebaseConfig = {
-  // These EXPO_PUBLIC_* Firebase values are public app config, not backend secrets.
+  // These Firebase values are public app config, not private backend secrets.
   apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
   authDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN,
   projectId: process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID,
@@ -14,7 +14,7 @@ const firebaseConfig = {
   appId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID,
 };
 
-// Prevents Firebase from initializing multiple times during fast refresh.
+// This stops Firebase from starting again during Expo fast refresh.
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 
 export const auth = getAuth(app);

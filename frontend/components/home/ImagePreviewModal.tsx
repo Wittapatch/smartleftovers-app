@@ -1,10 +1,10 @@
 import { styles } from "@/components/styles/index.styles";
 import { Image, Modal, Text, TouchableOpacity } from "react-native";
 
-// Simple full-screen image viewer for saved food photos.
+// This modal shows a saved food photo in full screen.
 
 interface ImagePreviewModalProps {
-  // A null URI hides the modal; a URI shows that image full-screen.
+  // null hides the modal, and a real URI shows the image.
   imageUri: string | null;
   onClose: () => void;
 }

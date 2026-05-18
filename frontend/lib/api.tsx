@@ -1,8 +1,8 @@
-// Shared backend request helpers used by screens and feature-specific API files.
-// Keeping the base URL and JSON parsing here avoids repeating fetch setup everywhere.
+// This file has helper functions for calling our Flask backend.
+// It keeps the API URL and JSON handling in one place.
 
 export function getApiUrl() {
-  // Expo exposes public runtime config through EXPO_PUBLIC_* variables.
+  // Expo reads this public backend URL from the .env file.
   return process.env.EXPO_PUBLIC_API_URL?.trim() ?? "";
 }
 
@@ -10,7 +10,7 @@ export async function apiJsonFetch<T = any>(
   path: string,
   options: RequestInit = {},
 ) {
-  // Central helper for JSON API calls so headers and errors stay consistent.
+  // This helper makes JSON API calls with the same headers every time.
   const API_URL = getApiUrl();
 
   if (!API_URL) {
@@ -19,7 +19,7 @@ export async function apiJsonFetch<T = any>(
 
   const headers = new Headers(options.headers);
   headers.set("Accept", "application/json");
-  // Required when the backend URL is an ngrok tunnel during mobile testing.
+  // This is needed when mobile testing uses an ngrok backend link.
   headers.set("ngrok-skip-browser-warning", "true");
 
   if (options.body && !headers.has("Content-Type")) {
@@ -33,7 +33,7 @@ export async function apiJsonFetch<T = any>(
   const responseText = await response.text();
 
   try {
-    // Most backend routes return JSON even for errors.
+    // Most backend routes return JSON, even when there is an error.
     const data = responseText ? (JSON.parse(responseText) as T) : ({} as T);
 
     return {
@@ -41,7 +41,7 @@ export async function apiJsonFetch<T = any>(
       response,
     };
   } catch {
-    // Surface a short preview when Flask/ngrok returns HTML instead of JSON.
+    // If the server returns HTML instead of JSON, show a short preview.
     const preview = responseText.replace(/\s+/g, " ").trim().slice(0, 160);
 
     throw new Error(

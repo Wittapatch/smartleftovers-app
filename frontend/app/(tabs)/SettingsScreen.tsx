@@ -8,19 +8,19 @@ import { getFriendlyErrorMessage } from "@/lib/userFriendlyError";
 import { clearWebAuthSession } from "@/lib/webAuthSession";
 import { styles } from "@/components/styles/SettingsScreen.styles";
 
-// Settings screen: manages account changes through Firebase and stores
-// notification preferences locally with AsyncStorage.
+// This is the settings page.
+// It handles account changes with Firebase and saves notification settings.
 
 export default function SettingsScreen() {
   const router = useRouter();
 
-  // Show or hide Account dropdown
+  // Show or hide the Account section.
   const [showAccountOptions, setShowAccountOptions] = useState(false);
 
-  // Show or hide Notifications dropdown
+  // Show or hide the Notifications section.
   const [showNotificationOptions, setShowNotificationOptions] = useState(false);
 
-  // Account input fields
+  // Account form fields.
   const [currentPassword, setCurrentPassword] = useState("");
   const [newEmail, setNewEmail] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -28,7 +28,7 @@ export default function SettingsScreen() {
   const [feedbackMessage, setFeedbackMessage] = useState("");
   const [feedbackType, setFeedbackType] = useState<"success" | "error">("success");
 
-  // Notification toggle states
+  // Notification switch values.
   const [expiryNotification, setExpiryNotification] = useState(false);
   const [restockNotification, setRestockNotification] = useState(false);
 
@@ -37,7 +37,7 @@ export default function SettingsScreen() {
     message: string,
     type: "success" | "error" = "success",
   ) => {
-    // Browser alerts are more reliable than React Native Alert on web.
+    // On web, browser alerts show more reliably than React Native alerts.
     setFeedbackType(type);
     setFeedbackMessage(message);
 
@@ -61,7 +61,7 @@ export default function SettingsScreen() {
 
   useEffect(() => {
     const loadNotificationSettings = async () => {
-      // Load saved switches when the settings screen opens.
+      // Load the saved switch settings when this screen opens.
       try {
         const settings = await getNotificationSettings();
         setExpiryNotification(settings.expiryNotifications);
@@ -79,7 +79,7 @@ export default function SettingsScreen() {
   }, []);
 
   const updateExpiryNotification = async (value: boolean) => {
-    // Save expiry reminder preference immediately when the switch changes.
+    // Save the expiry switch as soon as the user changes it.
     try {
       setFeedbackMessage("");
       setExpiryNotification(value);
@@ -97,7 +97,7 @@ export default function SettingsScreen() {
   };
 
   const updateRestockNotification = async (value: boolean) => {
-    // Save restock reminder preference immediately when the switch changes.
+    // Save the restock switch as soon as the user changes it.
     try {
       setFeedbackMessage("");
       setRestockNotification(value);
@@ -114,9 +114,9 @@ export default function SettingsScreen() {
     }
   };
 
-  // Re-authenticate user before changing email or password
+  // Re-check the user's password before changing email or password.
   const reauthenticateUser = async () => {
-    // Firebase requires recent login before changing sensitive account details.
+    // Firebase requires a recent login for sensitive account changes.
     const user = auth.currentUser;
 
     if (!user || !user.email) {
@@ -137,7 +137,7 @@ export default function SettingsScreen() {
     return user;
   };
 
-  // Change user's email
+  // Send a verification email before changing the user's email.
   const handleChangeEmail = async () => {
     try {
       setFeedbackMessage("");
@@ -156,8 +156,8 @@ export default function SettingsScreen() {
         return;
       }
 
-      // Send a Firebase verification link to the new email. The email changes only after
-      // the user clicks that link, which works better across Firebase security settings.
+      // Send a Firebase verification link to the new email.
+      // The email changes after the user clicks that link.
       await verifyBeforeUpdateEmail(user, trimmedNewEmail);
 
       showFeedback(
@@ -177,7 +177,7 @@ export default function SettingsScreen() {
     }
   };
 
-  // Change user's password
+  // Change the user's password.
   const handleChangePassword = async () => {
     try {
       setFeedbackMessage("");
@@ -215,11 +215,11 @@ export default function SettingsScreen() {
     }
   };
 
-  // Log out current user
+  // Log out the current user.
   const logout = async () => {
     try {
       setFeedbackMessage("");
-      // Clear the web-only session marker before ending the Firebase session.
+      // Clear the web session marker before signing out.
       clearWebAuthSession();
       await signOut(auth);
 

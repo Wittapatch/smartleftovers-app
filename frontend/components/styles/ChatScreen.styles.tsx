@@ -1,6 +1,6 @@
 import { StyleSheet } from "react-native";
 
-// Styles for the ChefBot chat screen.
+// Styles for the ChefBot chat page.
 
 export const styles = StyleSheet.create({
   screen: {

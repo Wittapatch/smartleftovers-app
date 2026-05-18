@@ -1,6 +1,6 @@
 import { Platform, StyleSheet } from "react-native";
 
-// Styles for the Home screen, food cards, modals, and shared home controls.
+// Styles for Home, food cards, modals, and the bottom buttons.
 
 export const styles = StyleSheet.create({
 

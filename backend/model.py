@@ -2,12 +2,12 @@ from uuid import uuid4
 
 from pydantic import BaseModel, Field
 
-# Pydantic models validate backend data before it is saved to MongoDB.
+# This model is the shape of one food item before we save it to MongoDB.
 
 Food_Type = str
 
 class FoodItem(BaseModel):
-    # Shape of one food item as stored in MongoDB and returned to the app.
+    # These are the fields one food item can have in our app.
     food_id:str=Field(default_factory=lambda:str(uuid4()))
     image_uri:str|None = None
     image_data:str|None = None

@@ -1,7 +1,7 @@
 import { apiJsonFetch } from "@/lib/api";
 
-// Client-side wrapper for ChefBot.
-// The actual Gemini key stays on the Flask backend, so this file only calls /chat.
+// This file is the frontend helper for ChefBot.
+// The Gemini key stays in Flask, so the app only calls our /chat route.
 
 export interface ChatMessage {
   role: "user" | "bot";
@@ -32,7 +32,7 @@ export async function chatWithGemini(
   ingredients: ChatIngredient[] = [],
   options: ChatOptions = {},
 ) {
-  // Send the visible conversation plus selected inventory items to the backend ChefBot route.
+  // Send the chat messages and selected ingredients to the backend.
   const { data, response } = await apiJsonFetch<ChatResponse>("/chat", {
     method: "POST",
     body: JSON.stringify({

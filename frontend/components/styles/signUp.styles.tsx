@@ -1,6 +1,6 @@
 import { StyleSheet } from "react-native";
 
-// Styles for the sign up screen.
+// Styles for the sign up page.
 
 export const styles = StyleSheet.create({
   container: {

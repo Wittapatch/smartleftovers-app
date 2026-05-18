@@ -1,8 +1,8 @@
-// Shared TypeScript types for Home screen components.
-// FoodItem is saved/displayed data; FoodDraft is temporary form data.
+// Shared types for the Home screen and its components.
+// FoodItem is saved data, while FoodDraft is the form before saving.
 
 export interface FoodItem {
-  // Normalized food shape used by the Home UI after reading from the backend.
+  // This is the food shape the Home UI uses.
   id: string;
   imageUri: string | null;
   imageData: string | null;
@@ -17,7 +17,7 @@ export interface FoodItem {
 }
 
 export interface FoodDraft {
-  // Editable form state before a food item is saved.
+  // This is the form data before a food item is saved.
   imageUri: string | null;
   imageData: string | null;
   name: string;

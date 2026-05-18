@@ -5,11 +5,11 @@ import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { chatWithGemini, ChatIngredient, ChatMessage } from "@/lib/chatWithGemini";
 import { styles } from "@/components/styles/ChatScreen.styles";
 
-// Chat screen for ChefBot. It receives selected ingredients from Home,
-// sends the conversation to the backend, and displays Gemini's recipe response.
+// This is the ChefBot chat screen.
+// It takes selected ingredients from Home and asks the backend for recipe ideas.
 
 const parseIngredients = (ingredientsParam: string | string[] | undefined) => {
-  // Route params are strings, so selected ingredients arrive as JSON text.
+  // Ingredients come through the route as JSON text, so we parse them here.
   const rawIngredients = Array.isArray(ingredientsParam)? ingredientsParam[0]: ingredientsParam;
 
   if (!rawIngredients) {
@@ -25,12 +25,12 @@ const parseIngredients = (ingredientsParam: string | string[] | undefined) => {
 };
 
 const parseParamText = (param: string | string[] | undefined) => {
-  // Expo Router params can be a string or string array; this normalizes to one string.
+  // Route params can be one string or an array, so this makes it one string.
   return Array.isArray(param) ? param[0] ?? "" : param ?? "";
 };
 
 export default function ChatScreen() {
-  // ChefBot can receive selected foods through route params from the Home screen.
+  // ChefBot receives selected foods from the Home screen through route params.
   const router = useRouter();
   const params = useLocalSearchParams();
   const ingredients = useMemo(
@@ -42,7 +42,7 @@ export default function ChatScreen() {
     [params.servings],
   );
 
-  // Store all chat messages
+  // Store all chat messages on this screen.
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       role: "bot",
@@ -55,25 +55,25 @@ export default function ChatScreen() {
     },
   ]);
 
-  // Store current user input
+  // Store what the user is typing.
   const [input, setInput] = useState("");
 
-  // Store loading state
+  // Store loading state while waiting for ChefBot.
   const [loading, setLoading] = useState(false);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
 
   useEffect(() => {
-    // Listen for when the keyboard opens so the screen can adjust the input bar.
+    // Watch when the keyboard opens so the input bar can move nicely.
     const showSubscription = Keyboard.addListener("keyboardDidShow", () => {
       setKeyboardVisible(true);
     });
 
-    // Listen for when the keyboard closes so the input bar can return to normal.
+    // Watch when the keyboard closes so the input bar goes back.
     const hideSubscription = Keyboard.addListener("keyboardDidHide", () => {
       setKeyboardVisible(false);
     });
 
-    // Remove both keyboard listeners when this screen unmounts to prevent memory leaks.
+    // Remove listeners when leaving this screen.
     return () => {
       showSubscription.remove();
       hideSubscription.remove();
@@ -81,18 +81,18 @@ export default function ChatScreen() {
   }, []);
 
   const sendMessage = async () => {
-    // Do not send empty messages to the backend.
+    // Do not send an empty message.
     if (input.trim() === "") {
       return;
     }
 
-    // Convert the current text input into a chat message from the user.
+    // Turn the typed text into a user chat message.
     const userMessage: ChatMessage = {
       role: "user",
       text: input,
     };
 
-    // Add the user's message immediately so the chat feels responsive.
+    // Show the user's message right away before the bot replies.
     const updatedMessages = [...messages, userMessage];
 
     setMessages(updatedMessages);
@@ -100,12 +100,12 @@ export default function ChatScreen() {
     setLoading(true);
 
     try {
-      // Ask the backend ChefBot route for a reply using the conversation and selected foods.
+      // Ask the backend for ChefBot's reply.
       const botReply = await chatWithGemini(input, updatedMessages, ingredients, {
         servings,
       });
 
-      // Add ChefBot's answer to the chat after the backend returns.
+      // Add ChefBot's answer after the backend responds.
       const botMessage: ChatMessage = {
         role: "bot",
         text: botReply,
@@ -113,23 +113,23 @@ export default function ChatScreen() {
 
       setMessages([...updatedMessages, botMessage]);
     } catch (error) {
-      // Keep the user on the chat screen and show a simple error if the request fails.
+      // If something fails, keep the user here and show an error.
       console.log(error);
       Alert.alert("Error", "Could not get chatbot reply");
     } finally {
-      // Stop the loading state whether the request succeeded or failed.
+      // Stop loading whether it worked or failed.
       setLoading(false);
     }
   };
 
   const goBack = () => {
-    // Return to the previous screen when this chat was opened from Home.
+    // Go back to Home if this chat was opened from there.
     if (router.canGoBack()) {
       router.back();
       return;
     }
 
-    // If there is no navigation history, safely return to the main tabs.
+    // If there is no back history, go to the main tabs.
     router.replace("/(tabs)");
   };
 

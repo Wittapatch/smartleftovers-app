@@ -11,10 +11,10 @@ import {
   View,
 } from "react-native";
 
-// Modal that lets the user choose which inventory items ChefBot should use.
+// This modal lets the user choose which foods ChefBot should use.
 
 interface IngredientPickerModalProps {
-  // Lets the user choose which saved foods should be sent to ChefBot.
+  // These props come from Home and control the ChefBot selection.
   chatServings: string;
   foods: FoodItem[];
   selectedFoodIds: string[];
@@ -46,7 +46,7 @@ export function IngredientPickerModal({
             </Text>
 
             <TextInput
-              // Serving count is sent as context; it does not change inventory amounts.
+              // Servings are only for ChefBot; they do not change inventory amounts.
               style={styles.input}
               placeholder="Number of servings"
               placeholderTextColor="#999999"
@@ -56,7 +56,7 @@ export function IngredientPickerModal({
             />
 
             <FlatList
-              // The checkmark state is controlled by selectedFoodIds from HomeScreen.
+              // Home controls which foods are checked.
               data={foods}
               keyExtractor={(item) => item.id}
               keyboardShouldPersistTaps="handled"

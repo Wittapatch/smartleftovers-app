@@ -1,12 +1,12 @@
 import { Platform } from "react-native";
 
-// Web demo helper: sessionStorage marks that the user logged in during this tab.
-// This makes browser refresh behavior predictable without changing mobile auth.
+// This is only for the web version.
+// It helps the app know if the user logged in during this browser tab.
 
 const WEB_AUTH_SESSION_KEY = "smartleftovers_web_auth_session";
 
 const canUseSessionStorage = () => {
-  // sessionStorage exists only on web and resets when the browser tab closes.
+  // sessionStorage only exists on web and resets when the tab closes.
   return Platform.OS === "web" && typeof window !== "undefined" && Boolean(window.sessionStorage);
 };
 
@@ -27,7 +27,7 @@ export function clearWebAuthSession() {
 }
 
 export function hasWebAuthSession() {
-  // Native Firebase sessions can persist normally; this guard is only for web demos.
+  // Mobile can keep the normal Firebase session, so this check is mainly for web.
   if (Platform.OS !== "web") {
     return true;
   }

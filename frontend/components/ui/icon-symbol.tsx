@@ -1,5 +1,5 @@
-// Fallback icon component for Android and web.
-// The app asks for SF Symbol names, and this file maps them to Material Icons.
+// Android and web use Material Icons instead of SF Symbols.
+// This file maps the iOS-style icon names to Material Icon names.
 
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { SymbolWeight, SymbolViewProps } from 'expo-symbols';
@@ -15,7 +15,7 @@ type IconSymbolName = keyof typeof MAPPING;
  * - see SF Symbols in the [SF Symbols](https://developer.apple.com/sf-symbols/) app.
  */
 const MAPPING = {
-  // App screens use SF Symbol names; this map translates them for Material Icons.
+  // Translate the app's icon names into Material Icons.
   'house.fill': 'home',
   'bell.fill': 'notifications',
   'gearshape.fill': 'settings',

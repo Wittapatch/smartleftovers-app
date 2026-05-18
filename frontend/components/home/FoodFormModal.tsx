@@ -13,11 +13,11 @@ import {
   View,
 } from "react-native";
 
-// Modal form used for both adding new food and editing existing food.
-// The parent screen owns the save logic; this component only edits the draft.
+// This modal is used for both adding and editing food.
+// It edits the draft, while Home handles the actual saving.
 
 interface FoodFormModalProps {
-  // The parent owns draft state so save/cancel/edit behavior stays in HomeScreen.
+  // The parent owns the draft so Home can control saving and cancelling.
   draft: FoodDraft;
   editingFoodId: string | null;
   errorMessage: string;
@@ -60,7 +60,7 @@ export function FoodFormModal({
               <Image source={{ uri: previewImageUri }} style={styles.previewImage} />
             )}
 
-            {/* Gemini extraction is optional; users can still type every field manually. */}
+            {/* Gemini extraction is optional, so users can still type manually. */}
             {loading && (
               <Text style={styles.loadingText}>Extracting food information...</Text>
             )}
@@ -78,7 +78,7 @@ export function FoodFormModal({
               </Text>
             </TouchableOpacity>
 
-            {/* Each input updates one field in the draft without saving to the backend yet. */}
+            {/* These inputs update the draft before saving to the backend. */}
             <Text style={styles.inputLabel}>Name *</Text>
             <TextInput
               style={styles.input}

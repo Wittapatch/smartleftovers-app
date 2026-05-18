@@ -1,12 +1,12 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-// Local notification preferences are stored on the user's device/browser.
-// These settings control which notification cards are generated in the app.
+// This file saves the user's notification settings on their device/browser.
+// The app uses these settings when it creates notification cards.
 
 const NOTIFICATION_SETTINGS_KEY = "smartleftovers-notification-settings";
 
 export interface NotificationSettings {
-  // User-controlled switches that affect locally generated notification cards.
+  // These are the two switches the user can turn on or off.
   expiryNotifications: boolean;
   restockNotifications: boolean;
 }
@@ -17,7 +17,7 @@ export const defaultNotificationSettings: NotificationSettings = {
 };
 
 export async function getNotificationSettings() {
-  // Merge stored settings with defaults so new settings can be added safely later.
+  // Combine saved settings with defaults in case we add more settings later.
   const storedSettings = await AsyncStorage.getItem(NOTIFICATION_SETTINGS_KEY);
 
   if (!storedSettings) {
@@ -35,7 +35,7 @@ export async function getNotificationSettings() {
 }
 
 export async function saveNotificationSettings(settings: NotificationSettings) {
-  // AsyncStorage keeps preferences on the device/browser between app launches.
+  // AsyncStorage keeps these settings after the app closes.
   await AsyncStorage.setItem(
     NOTIFICATION_SETTINGS_KEY,
     JSON.stringify(settings),

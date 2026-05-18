@@ -8,19 +8,19 @@ import { useState } from "react";
 import {Alert,KeyboardAvoidingView,Platform,Text,TextInput,TouchableOpacity,View} from "react-native";
 import { styles } from "@/components/styles/signUp.styles";
 
-// Sign up screen: creates the Firebase account first, then creates the matching
-// MongoDB user document through the Flask backend.
+// This is the sign up page.
+// It creates the Firebase account first, then creates the MongoDB user document.
 
 export default function SignUpScreen() {
   const router = useRouter();
 
-  // Store email input
+  // Store what the user types for email.
   const [email, setEmail] = useState("");
 
-  // Store password input
+  // Store what the user types for password.
   const [password, setPassword] = useState("");
 
-  // Store confirm password input
+  // Store the confirm password field.
   const [confirmPassword, setConfirmPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -32,7 +32,7 @@ export default function SignUpScreen() {
     }
   };
 
-  // Register new user after checking required fields and matching passwords.
+  // Sign up after checking that the fields are valid.
   const signUp = async () => {
     setErrorMessage("");
 
@@ -65,7 +65,7 @@ export default function SignUpScreen() {
       );
 
       Alert.alert("Sign up success", userCredential.user.email ?? "");
-      // Create the matching backend profile after Firebase account creation.
+      // Create the matching backend user after Firebase creates the account.
       await apiJsonFetch("/create-user", {
         method: "POST",
         body: JSON.stringify({
@@ -73,9 +73,9 @@ export default function SignUpScreen() {
         }),
       });
 
-      // Mark this tab as intentionally signed in for the web demo flow.
+      // For web, mark this browser tab as logged in.
       allowWebAuthSession();
-      // Go to main tabs after successful signup
+      // Go to the main app after successful sign up.
       router.replace("/(tabs)");
     } catch (error: any) {
       showError(
@@ -90,7 +90,7 @@ export default function SignUpScreen() {
       style={styles.container}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
-      {/* Logo text */}
+      {/* App logo */}
       <View style={styles.logoContainer}>
         <Text
           style={styles.logoText}
@@ -139,7 +139,7 @@ export default function SignUpScreen() {
         <Text style={styles.buttonText}>Sign up</Text>
       </TouchableOpacity>
 
-      {/* Go back to login page */}
+      {/* Button to go back to login page */}
       <TouchableOpacity
         style={styles.button}
         onPress={() => router.push("/login")}

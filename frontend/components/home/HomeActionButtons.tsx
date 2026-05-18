@@ -2,10 +2,10 @@ import { styles } from "@/components/styles/index.styles";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { Text, TouchableOpacity, View } from "react-native";
 
-// Floating bottom action buttons for filtering, adding food, and opening ChefBot.
+// These are the bottom buttons for filter, add food, and ChefBot.
 
 interface HomeActionButtonsProps {
-  // Bottom action row: filter list, add food, and choose ingredients for ChefBot.
+  // Parent screen decides what each button does.
   onFilter: () => void;
   onOpenCamera: () => void;
   onOpenIngredients: () => void;

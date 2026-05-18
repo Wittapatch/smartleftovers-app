@@ -1,11 +1,11 @@
 import * as FileSystem from "expo-file-system/legacy";
 import { Platform } from "react-native";
 
-// Image helpers for keeping food photos usable across native and web.
-// Native uses local file URIs, while web needs displayable data URIs.
+// This file helps store food photos so they work on both mobile and web.
+// Mobile can use local file paths, but web needs image data it can display.
 
 const getMimeType = (uri: string) => {
-  // Preserve the correct image type when converting a local file to a data URI.
+  // Keep the right image type when converting the image to base64.
   const lowerUri = uri.toLowerCase();
 
   if (lowerUri.endsWith(".png")) {
@@ -20,7 +20,7 @@ const getMimeType = (uri: string) => {
 };
 
 const blobToDataUri = (blob: Blob) => {
-  // Browser FileReader converts uploaded/selected image blobs into base64 data URIs.
+  // FileReader turns a selected web image into base64 image data.
   return new Promise<string>((resolve, reject) => {
     const reader = new FileReader();
 
@@ -31,7 +31,7 @@ const blobToDataUri = (blob: Blob) => {
 };
 
 export async function prepareImageUriForStorage(imageUri: string | null) {
-  // Store images as data URIs so they can be displayed across web and native sessions.
+  // Save images as data URIs so they can show again later.
   if (!imageUri || imageUri.startsWith("data:") || imageUri.startsWith("http")) {
     return imageUri;
   }
@@ -50,7 +50,7 @@ export async function prepareImageUriForStorage(imageUri: string | null) {
 }
 
 export function chooseWebImageData() {
-  // Web cannot use the native camera component, so open a file picker instead.
+  // Web cannot use the native camera, so we open a file picker.
   return new Promise<string | null>((resolve, reject) => {
     if (Platform.OS !== "web" || typeof document === "undefined") {
       resolve(null);

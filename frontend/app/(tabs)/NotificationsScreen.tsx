@@ -8,8 +8,8 @@ import { useCallback, useEffect, useState } from "react";
 import {ActivityIndicator,Alert,FlatList,Text,TouchableOpacity,View} from "react-native";
 import { styles } from "@/components/styles/NotificationsScreen.styles";
 
-// Notifications screen: creates reminder cards from saved food data.
-// The reminders are calculated locally from expiry dates, quantities, and settings.
+// This is the notifications page.
+// It checks saved foods and creates reminder cards for expiry and restock.
 
 interface StoredFoodItem {
   food_id: string;
@@ -38,7 +38,7 @@ interface Notice {
 }
 
 const parseFoodDate = (value?: string | null) => {
-  // Food dates are stored as DD/MM/YY or DD/MM/YYYY strings.
+  // Food dates are saved as DD/MM/YY or DD/MM/YYYY.
   if (!value) {
     return null;
   }
@@ -65,7 +65,7 @@ const createNotices = (
   foods: StoredFoodItem[],
   settings: NotificationSettings,
 ) => {
-  // Notifications are calculated locally from saved food dates and settings.
+  // Make notification cards from the user's foods and settings.
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
@@ -127,7 +127,7 @@ export default function NotificationsScreen() {
   const [notices, setNotices] = useState<Notice[]>([]);
 
   const loadNotices = useCallback(async (user: User) => {
-    // Load current foods and notification preferences, then build visible cards.
+    // Load foods and settings, then create the notification cards.
     if (!API_URL) {
       Alert.alert("Error", "Missing EXPO_PUBLIC_API_URL");
       setLoading(false);
@@ -180,7 +180,7 @@ export default function NotificationsScreen() {
   );
 
   const dismissNotice = (noticeId: string) => {
-    // Non-expired notices are only cleared from the current screen.
+    // For normal notices, just remove the card from this screen.
     setConfirmingNoticeId(null);
     setNotices((currentNotices) =>
       currentNotices.filter((notice) => notice.id !== noticeId),
@@ -188,7 +188,7 @@ export default function NotificationsScreen() {
   };
 
   const handleExpiredDeletePress = (notice: Notice) => {
-    // Web and mobile share this two-tap confirmation instead of platform dialogs.
+    // Use two taps to confirm deleting expired food.
     if (confirmingNoticeId !== notice.id) {
       setConfirmingNoticeId(notice.id);
       return;
@@ -198,7 +198,7 @@ export default function NotificationsScreen() {
   };
 
   const deleteExpiredFood = async (notice: Notice) => {
-    // Expired-food deletion removes the saved food from MongoDB through the API.
+    // Delete expired food from MongoDB through the backend.
     const user = auth.currentUser;
 
     if (!API_URL) {

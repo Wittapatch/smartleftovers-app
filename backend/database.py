@@ -4,12 +4,12 @@ from dotenv import load_dotenv
 from model import Food_Type, FoodItem
 from pymongo import MongoClient
 
-# This file contains all MongoDB actions for the app.
-# The Flask routes call these functions instead of writing database logic directly.
+# This file keeps all the MongoDB code in one place.
+# The Flask routes call these functions when they need to read or save food data.
 
 load_dotenv()
 
-# MongoDB connection string is provided by Docker or the local terminal.
+# Get the MongoDB URI that we set in the terminal or Docker.
 uri = getenv("MONGO_DB_URI")
 
 if not uri:
@@ -19,14 +19,14 @@ client = MongoClient(uri)
 
 
 try:
-    # All users are stored in one collection, keyed by their Firebase uid.
+    # Each user document is stored using the Firebase uid as the id.
     db = client.get_database("smart_leftovers")
     col = db.get_collection("user_data")
 except Exception as e:
     raise Exception("Unable to find the collection due to the following error: ", e)
 
 def add_user(_id:str):
-    # Create the user document once without overwriting existing food items.
+    # Create the user only if they do not already exist.
     col.update_one(
         {"_id":_id},
         {"$setOnInsert":{"food_items":[]}},
@@ -34,11 +34,11 @@ def add_user(_id:str):
     )
 
 def delete_user(_id:str):
-    # Remove the whole user document, including all saved food items.
+    # Delete the user and all their saved foods.
     col.delete_one({"_id":_id})
 
 def filter_food_type(_id:str,food_type:Food_Type):
-    # Read the user's embedded list and return only matching food categories.
+    # Look through the user's foods and return only the matching type.
     user_info = col.find_one({"_id":_id})
     result=[]
     if user_info is None:
@@ -51,7 +51,7 @@ def filter_food_type(_id:str,food_type:Food_Type):
         return result
 
 def get_foods(_id:str):
-    # Auto-create the document on first use so later writes have a place to land.
+    # If the user does not exist yet, create them and return an empty list.
     user_info = col.find_one({"_id":_id}, {"food_items": 1})
 
     if user_info is None:
@@ -61,7 +61,7 @@ def get_foods(_id:str):
     return user_info.get("food_items", [])
 
 def add_food(_id:str,name:str,expiry_date:str,purchase_date:str,food_type:Food_Type,quantity:float|None,unit:str,description:str,image_uri:str,image_data:str,use_extract_feature:bool):
-    # Pydantic validates and gives each item a unique food_id before saving.
+    # Pydantic checks the food data and creates a unique food_id.
     food_item = FoodItem(
         image_uri=image_uri,
         image_data=image_data,
@@ -82,11 +82,11 @@ def add_food(_id:str,name:str,expiry_date:str,purchase_date:str,food_type:Food_T
     return food_item.food_id
 
 def delete_food(_id:str,food_id:str):
-    # Pull removes only the embedded food item with the matching food_id.
+    # Pull removes only the food item with this food_id.
     return col.update_one({"_id":_id},{"$pull":{"food_items":{"food_id":food_id}}})
 
 def update_food(_id:str,food_id:str,name:str,expiry_date:str,purchase_date:str,food_type:Food_Type,quantity:float|None,unit:str,description:str,image_uri:str,image_data:str,use_extract_feature:bool):
-    # Mongo's positional operator updates only the array item with this food_id.
+    # The $ operator updates only the food item that matches this food_id.
     food_item = FoodItem(
         food_id=food_id,
         image_uri=image_uri,
@@ -104,7 +104,7 @@ def update_food(_id:str,food_id:str,name:str,expiry_date:str,purchase_date:str,f
         {"_id":_id,"food_items.food_id":food_id},
         {"$set":{"food_items.$":food_item.model_dump(mode="json")}},
     )
-#Check that connection to the MongoDB works
+# Quick test to check that the MongoDB connection works.
 if __name__ == "__main__":
     try:
         test = client.admin.command("ping")

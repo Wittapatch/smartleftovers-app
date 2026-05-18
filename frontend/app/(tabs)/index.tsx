@@ -17,11 +17,12 @@ import { chooseWebImageData, prepareImageUriForStorage } from "@/lib/imageStorag
 import { getFriendlyErrorMessage } from "@/lib/userFriendlyError";
 import { styles } from "@/components/styles/index.styles";
 
-// Home screen: loads the user's food inventory, handles add/edit/delete,
-// sends images to Gemini for extraction, and opens ChefBot with selected foods.
+// This is the main Home screen.
+// It loads the food inventory, handles add/edit/delete, uses Gemini for photos,
+// and opens ChefBot with selected ingredients.
 
 interface StoredFoodItem {
-  // This matches the raw food object returned by the Flask/MongoDB backend.
+  // This matches the food data we get back from the backend.
   food_id: string;
   image_uri?: string | null;
   image_data?: string | null;
@@ -36,19 +37,19 @@ interface StoredFoodItem {
 }
 
 interface FoodListResponse {
-  // Response shape for GET /foods.
+  // This is the response from GET /foods.
   food_items?: StoredFoodItem[];
   error?: string;
 }
 
 interface FoodWriteResponse {
-  // Response shape for add/update/delete food requests.
+  // This is the response from add, update, and delete food requests.
   food_id?: string;
   error?: string;
 }
 
 const getTodayDate = () => {
-  // New food drafts default their purchase date to today.
+  // New food starts with today's date as the purchase date.
   const today = new Date();
 
   return today.toLocaleDateString("en-GB", {
@@ -59,7 +60,7 @@ const getTodayDate = () => {
 };
 
 const mapStoredFoodToFoodItem = (food: StoredFoodItem): FoodItem => {
-  // Convert backend snake_case fields into the camelCase shape used by components.
+  // Convert backend field names into the field names our components use.
   return {
     id: food.food_id,
     imageUri: food.image_uri ?? null,
@@ -76,7 +77,7 @@ const mapStoredFoodToFoodItem = (food: StoredFoodItem): FoodItem => {
 };
 
 const createEmptyDraft = (): FoodDraft => {
-  // Used whenever the add/edit form needs to start from a blank food item.
+  // Start the add/edit form with empty food values.
   return {
     imageUri: null,
     imageData: null,
@@ -108,7 +109,7 @@ const parseOptionalAmount = (amount: string) => {
 };
 
 const parseFoodDate = (value: string) => {
-  // Accept dates users type in the form, then normalize them for comparison.
+  // Parse the date that the user typed so we can compare it.
   const trimmedValue = value.trim();
 
   if (!/^\d{1,2}\/\d{1,2}\/\d{2,4}$/.test(trimmedValue)) {
@@ -148,7 +149,7 @@ const getDateValidationError = (
   expiryDateValue: string,
   purchaseDateValue: string,
 ) => {
-  // Keep invalid dates from reaching the backend and confusing expiry logic.
+  // Check dates before saving so expiry logic does not get confused.
   const expiryText = expiryDateValue.trim();
   const purchaseText = purchaseDateValue.trim();
   const expiryDate = expiryText ? parseFoodDate(expiryText) : null;
@@ -170,7 +171,7 @@ const getDateValidationError = (
 };
 
 const isFoodExpired = (food: FoodItem) => {
-  // Home hides expired foods, but the backend keeps them for notification cleanup.
+  // Hide expired food from Home, but keep it saved for Notifications.
   if (!food.expiryDate) {
     return false;
   }
@@ -188,7 +189,7 @@ const isFoodExpired = (food: FoodItem) => {
 };
 
 const isExpiryDateTextExpired = (expiryDateText: string) => {
-  // Used after saving so the success message can explain why an item disappeared.
+  // Check if a saved food will be hidden because it is already expired.
   if (!expiryDateText) {
     return false;
   }
@@ -206,7 +207,7 @@ const isExpiryDateTextExpired = (expiryDateText: string) => {
 };
 
 const getDisplayImageUri = (food: FoodItem) => {
-  // Web cannot display local device file paths, so prefer stored base64 data there.
+  // Web cannot show mobile local file paths, so use stored image data first.
   if (food.imageData) {
     return food.imageData;
   }
@@ -225,7 +226,7 @@ const getDisplayImageUri = (food: FoodItem) => {
 };
 
 const hasUnsyncedWebImage = (food: FoodItem) => {
-  // True when a native-only image path exists but web does not have base64 image data yet.
+  // This is true when web needs the user to re-add an image.
   return (
     Platform.OS === "web" &&
     Boolean(food.imageUri) &&
@@ -238,20 +239,20 @@ const hasUnsyncedWebImage = (food: FoodItem) => {
 export default function HomeScreen() {
   const router = useRouter();
 
-  // Base backend URL comes from EXPO_PUBLIC_API_URL.
+  // Backend URL comes from EXPO_PUBLIC_API_URL.
   const API_URL = getApiUrl();
 
-  // General loading flags for image extraction and initial food loading.
+  // Loading values for image extraction and food loading.
   const [loading, setLoading] = useState(false);
   const [loadingFoods, setLoadingFoods] = useState(true);
 
-  // Current Firebase user controls which backend food list is loaded.
+  // Current Firebase user decides which food list we load.
   const [currentUser, setCurrentUser] = useState<User | null>(null);
 
-  // Main inventory list displayed on the home screen.
+  // Main food list shown on Home.
   const [foods, setFoods] = useState<FoodItem[]>([]);
 
-  // Modal visibility and temporary UI state.
+  // Modal and temporary screen state.
   const [showCameraModal, setShowCameraModal] = useState(false);
   const [showFormModal, setShowFormModal] = useState(false);
   const [showFilterModal, setShowFilterModal] = useState(false);
@@ -260,24 +261,24 @@ export default function HomeScreen() {
   const [homeStatusMessage, setHomeStatusMessage] = useState("");
   const [savingFood, setSavingFood] = useState(false);
 
-  // ChefBot ingredient selection state.
+  // ChefBot ingredient selection values.
   const [selectedChatFoodIds, setSelectedChatFoodIds] = useState<string[]>([]);
   const [chatServings, setChatServings] = useState("1");
 
-  // Filtering and menu state for the food list.
+  // Filter, sort, and menu state for the food list.
   const [sortMode, setSortMode] = useState<SortMode>("none");
   const [selectedFoodType, setSelectedFoodType] = useState<string | null>(null);
   const [openWebMenuFoodId, setOpenWebMenuFoodId] = useState<string | null>(null);
   const [previewingImageUri, setPreviewingImageUri] = useState<string | null>(null);
 
-  // Draft stores the add/edit form values before they are saved.
+  // Draft keeps form values before the user saves.
   const [draft, setDraft] = useState<FoodDraft>(createEmptyDraft());
 
-  // null means the form is adding a new food; an id means the form is editing.
+  // null means adding new food; an id means editing existing food.
   const [editingFoodId, setEditingFoodId] = useState<string | null>(null);
 
   useEffect(() => {
-    // Auto-hide the save/update banner after a short moment.
+    // Hide the saved/updated message after a few seconds.
     if (!homeStatusMessage) {
       return;
     }
@@ -290,7 +291,7 @@ export default function HomeScreen() {
   }, [homeStatusMessage]);
 
   const displayedFoods = useMemo(() => {
-    // Keep filtering/sorting derived from foods so the saved list remains unchanged.
+    // Filter and sort a copy so the original saved food list stays unchanged.
     const sortedFoods = foods.filter((food) => {
       if (!selectedFoodType) {
         return true;
@@ -309,7 +310,7 @@ export default function HomeScreen() {
   }, [foods, selectedFoodType, sortMode]);
 
   const foodTypes = useMemo(() => {
-    // Build the filter options from the food types currently saved by the user.
+    // Create filter options from the food types the user already saved.
     const uniqueTypes = new Set<string>();
 
     foods.forEach((food) => {
@@ -326,7 +327,7 @@ export default function HomeScreen() {
   }, [foods]);
 
   const saveFoodImageData = useCallback(async (food: FoodItem, user: User) => {
-    // Native photos are local files; saving base64 makes them visible later on web.
+    // Mobile photos are local files, so we save image data for web display too.
     if (Platform.OS === "web" || !food.imageUri || food.imageData) {
       return null;
     }
@@ -359,7 +360,7 @@ export default function HomeScreen() {
   }, []);
 
   const syncMissingImageData = useCallback((savedFoods: FoodItem[], user: User) => {
-    // On native, convert old local image paths to base64 so future web sessions can show them.
+    // On mobile, convert missing image data so web can show the image later.
     if (Platform.OS === "web") {
       return;
     }
@@ -389,7 +390,7 @@ export default function HomeScreen() {
   }, [saveFoodImageData]);
 
   const loadFoods = useCallback(async (user: User) => {
-    // Every food request is scoped by the Firebase uid from the current auth session.
+    // Use the Firebase uid so each user only loads their own foods.
     if (!API_URL) {
       Alert.alert("Error", "Missing EXPO_PUBLIC_API_URL");
       setLoadingFoods(false);
@@ -411,7 +412,7 @@ export default function HomeScreen() {
       const savedFoods = Array.isArray(data.food_items)
         ? data.food_items.map(mapStoredFoodToFoodItem)
         : [];
-      // Expired items are intentionally excluded from Home, not deleted here.
+      // Expired foods are hidden from Home but not deleted here.
       const activeFoods = savedFoods.filter((food) => !isFoodExpired(food));
 
       setFoods(activeFoods);
@@ -425,7 +426,7 @@ export default function HomeScreen() {
   }, [API_URL, syncMissingImageData]);
 
   useEffect(() => {
-    // Redirect logged-out users away from the protected tabs.
+    // If the user logs out, send them back to login.
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setCurrentUser(user);
 
@@ -444,7 +445,7 @@ export default function HomeScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      // Refresh the list whenever the Home tab comes back into focus.
+      // Reload foods when the user comes back to the Home tab.
       const user = auth.currentUser;
 
       if (user) {
@@ -454,14 +455,14 @@ export default function HomeScreen() {
   );
 
   const openCamera = () => {
-    // Starting a new camera capture means we are adding, not editing.
+    // Opening the camera starts a new food item.
     setEditingFoodId(null);
     setDraft(createEmptyDraft());
     setShowCameraModal(true);
   };
 
   const openEditFood = (food: FoodItem) => {
-    // Copy the selected food into the draft so the form can edit it safely.
+    // Copy the selected food into the form before editing.
     setEditingFoodId(food.id);
 
     setDraft({
@@ -481,20 +482,20 @@ export default function HomeScreen() {
   };
 
   const openIngredientPicker = () => {
-    // ChefBot needs at least one saved food item to build a leftovers recipe.
+    // ChefBot needs at least one saved food to make a recipe.
     if (foods.length === 0) {
       Alert.alert("No food saved", "Add food first so ChefBot can use it.");
       return;
     }
 
-    // Select all foods by default so the user can remove anything they do not want.
+    // Select all foods first, then the user can unselect any item.
     setSelectedChatFoodIds(foods.map((food) => food.id));
     setChatServings("1");
     setShowIngredientModal(true);
   };
 
   const toggleChatFood = (foodId: string) => {
-    // Toggle one food id inside the selected ingredient list.
+    // Add or remove one food from the ChefBot selection.
     setSelectedChatFoodIds((currentIds) =>
       currentIds.includes(foodId)
         ? currentIds.filter((id) => id !== foodId)
@@ -503,7 +504,7 @@ export default function HomeScreen() {
   };
 
   const openChefBot = () => {
-    // Send only the selected food items to the Chat screen through route params.
+    // Send only selected foods to the Chat screen.
     const selectedFoods = foods.filter((food) =>
       selectedChatFoodIds.includes(food.id),
     );
@@ -514,7 +515,7 @@ export default function HomeScreen() {
     }
 
     setShowIngredientModal(false);
-    // Route params must be strings, so the selected foods are JSON encoded.
+    // Route params must be strings, so we send the foods as JSON text.
     router.push({
       pathname: "/ChatScreen",
       params: {
@@ -534,7 +535,7 @@ export default function HomeScreen() {
   };
 
   const deleteFood = async (foodId: string) => {
-    // Delete requires both a configured API URL and a logged-in Firebase user.
+    // Deleting needs the backend URL and a logged-in user.
     if (!API_URL) {
       Alert.alert("Error", "Missing EXPO_PUBLIC_API_URL");
       return;
@@ -560,7 +561,7 @@ export default function HomeScreen() {
       }
 
       setFoods((currentFoods) =>
-        // Update local state after the backend confirms deletion.
+        // Remove it from the screen after the backend deletes it.
         currentFoods.filter((food) => food.id !== foodId),
       );
     } catch (error: any) {
@@ -569,7 +570,7 @@ export default function HomeScreen() {
   };
 
   const saveImageDataForFood = async (food: FoodItem, imageData: string) => {
-    // Used by web when the user manually attaches image data to an existing food.
+    // On web, this saves an image the user re-attaches to a food.
     if (!currentUser) {
       Alert.alert("Not logged in", "Please log in again.");
       return;
@@ -600,7 +601,7 @@ export default function HomeScreen() {
       }
 
       setFoods((currentFoods) =>
-        // Keep the UI in sync with the saved image data without reloading the whole list.
+        // Update the image on screen without reloading all foods.
         currentFoods.map((currentFood) =>
           currentFood.id === food.id
             ? {
@@ -616,7 +617,7 @@ export default function HomeScreen() {
   };
 
   const chooseImageForWebFood = async (food: FoodItem) => {
-    // Web cannot reuse native local file paths, so it lets the user pick an image file.
+    // Web cannot use mobile file paths, so the user can pick a web image.
     if (Platform.OS !== "web") {
       return;
     }
@@ -631,7 +632,7 @@ export default function HomeScreen() {
   };
 
   const showFoodOptions = (food: FoodItem) => {
-    // Web shows an inline menu because Alert action sheets are not available there.
+    // Web uses an inline menu because action sheets are not available there.
     if (Platform.OS === "web") {
       setOpenWebMenuFoodId((currentFoodId) =>
         currentFoodId === food.id ? null : food.id,
@@ -639,7 +640,7 @@ export default function HomeScreen() {
       return;
     }
 
-    // Native uses an Alert menu for edit/delete actions.
+    // Mobile uses an Alert menu for edit and delete.
     Alert.alert(food.name, "Choose an action", [
       {
         text: "Edit",
@@ -658,7 +659,7 @@ export default function HomeScreen() {
   };
 
   const saveFood = async () => {
-    // The same form handles both creating a new food and editing an existing one.
+    // The same form is used for adding and editing food.
     setFormErrorMessage("");
 
     if (!API_URL) {
@@ -696,14 +697,14 @@ export default function HomeScreen() {
     const savedFoodWillBeHidden = isExpiryDateTextExpired(draft.expiryDate);
 
     try {
-      // Convert local image files to base64 before saving, when possible.
+      // Convert the image before saving if we can.
       imageData = imageData ?? await prepareImageUriForStorage(draft.imageUri);
     } catch (error) {
       console.log("Could not prepare image for web display", error);
     }
 
     if (editingFoodId) {
-      // Editing updates the existing backend item and then replaces it locally.
+      // Editing updates the backend item and then updates it on screen.
       if (!currentUser) {
         setFormErrorMessage("Please log in again before saving.");
         Alert.alert("Not logged in", "Please log in again.");
@@ -767,7 +768,7 @@ export default function HomeScreen() {
         );
       });
     } else {
-      // Adding creates a new backend item and uses the returned food_id locally.
+      // Adding saves a new backend item and uses the returned food_id.
       if (!currentUser) {
         setFormErrorMessage("Please log in again before saving.");
         Alert.alert("Not logged in", "Please log in again.");
@@ -805,7 +806,7 @@ export default function HomeScreen() {
         }
 
         const newFood: FoodItem = {
-          // Use the backend-generated id so future edits/deletes target the right item.
+          // Use the backend id so edit/delete knows which food to change later.
           id: data.food_id,
           imageUri: draft.imageUri,
           imageData,
@@ -844,7 +845,7 @@ export default function HomeScreen() {
   };
 
   const analyzeTakenPhoto = async (uri:string) => {
-    // Ask the backend/Gemini endpoint to extract food fields from the selected image.
+    // Ask Gemini through the backend to read food details from the image.
     try {
       setLoading(true);
 
@@ -867,13 +868,13 @@ export default function HomeScreen() {
   }
 
   const fillDraftWithExtractedData = (data: ExtractedFoodData) => {
-    // Merge Gemini's extracted fields into the current form draft.
+    // Put Gemini's extracted fields into the current form.
     setDraft((currentDraft) => ({
       ...currentDraft,
-      // Keep the image that was already taken
+      // Keep the image that was already taken.
       imageUri: currentDraft.imageUri,
       imageData: currentDraft.imageData,
-      // Fill fields with Gemini result, but keep user-entered values when Gemini is empty.
+      // Fill fields from Gemini, but keep user text when Gemini leaves it blank.
       name: data.name || currentDraft.name,
       type: data.food_type || currentDraft.type,
       expiryDate: data.expiry_date || currentDraft.expiryDate,
@@ -882,13 +883,13 @@ export default function HomeScreen() {
       unit: data.unit || currentDraft.unit,
       description: data.description || currentDraft.description,
 
-      // Mark that extract feature was used
+      // Remember that the extract feature was used.
       useExtractFeature: true,
     }))
   }
 
   const renderFoodCard = ({ item }: { item: FoodItem }) => {
-    // FlatList calls this for each food item and wires parent actions into FoodCard.
+    // FlatList uses this to render each food card.
     const displayImageUri = getDisplayImageUri(item);
 
     return (
@@ -910,7 +911,7 @@ export default function HomeScreen() {
   const previewImageUri = draft.imageData ?? draft.imageUri;
 
   const handlePhotoTaken = (uri: string) => {
-    // After taking a photo, store it in the draft and open the add/edit form.
+    // After taking a photo, put it in the form and open the form.
     setDraft((currentDraft) => ({
       ...currentDraft,
       imageUri: uri,
@@ -922,7 +923,7 @@ export default function HomeScreen() {
   };
 
   const extractDraftImage = () => {
-    // Image extraction fills the form draft; the user still reviews before saving.
+    // Extraction fills the form, but the user still reviews before saving.
     const imageUri = draft.imageUri ?? draft.imageData;
 
     if (!imageUri) {
@@ -941,7 +942,7 @@ export default function HomeScreen() {
         </View>
       ) : null}
 
-      {/* Functional render states: loading, empty inventory, or the filtered food list. */}
+      {/* Show loading, empty state, or the food list. */}
       {loadingFoods ? (
         <View style={styles.emptyBox}>
           <Text style={styles.emptyTitle}>Loading your food...</Text>
@@ -969,7 +970,7 @@ export default function HomeScreen() {
       )}
 
       <HomeActionButtons
-        // Bottom actions open filtering, camera capture, or ChefBot ingredient selection.
+        // Bottom buttons open filter, camera, or ChefBot.
         onFilter={() => setShowFilterModal(true)}
         onOpenCamera={openCamera}
         onOpenIngredients={openIngredientPicker}
@@ -987,7 +988,7 @@ export default function HomeScreen() {
       />
 
       <FoodFormModal
-        // Form modal receives draft state and calls back when the user saves/extracts/cancels.
+        // Food form gets the draft and calls back when the user acts.
         draft={draft}
         editingFoodId={editingFoodId}
         loading={loading}
@@ -1006,7 +1007,7 @@ export default function HomeScreen() {
       />
 
       <FilterModal
-        // Filter modal updates the selected food type and sort mode in this screen.
+        // Filter modal changes food type and sort mode.
         foodTypes={foodTypes}
         selectedFoodType={selectedFoodType}
         sortMode={sortMode}
@@ -1017,7 +1018,7 @@ export default function HomeScreen() {
       />
 
       <IngredientPickerModal
-        // Ingredient picker chooses foods and servings before opening ChefBot.
+        // Ingredient picker chooses foods and servings for ChefBot.
         chatServings={chatServings}
         foods={foods}
         selectedFoodIds={selectedChatFoodIds}

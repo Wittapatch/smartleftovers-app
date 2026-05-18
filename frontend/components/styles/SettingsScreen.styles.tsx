@@ -1,6 +1,6 @@
 import { StyleSheet } from "react-native";
 
-// Styles for account settings and notification preference controls.
+// Styles for the settings page.
 
 export const styles = StyleSheet.create({
   keyboardContainer: {

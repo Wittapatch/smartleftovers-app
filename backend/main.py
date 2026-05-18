@@ -6,31 +6,30 @@ from flask_cors import CORS
 from google import genai
 from google.genai import types
 
-# This file defines the Flask API routes used by the Expo app.
-# It receives requests from the frontend, calls MongoDB helper functions,
-# and calls Gemini for image extraction and ChefBot recipe suggestions.
+# This is the main Flask API file for our app.
+# The frontend sends requests here, then this file talks to MongoDB or Gemini.
 
-# Load local environment variables when running outside Docker.
+# Load environment variables when we run the backend locally.
 load_dotenv()
 
-# Gemini is called only from the backend so the private key is never bundled into the app.
+# We only use the Gemini key in the backend so it is not exposed in the app.
 GEMINI_KEY = os.getenv("GEMINI_KEY")
 
 if not GEMINI_KEY:
     raise ValueError("Missing GEMINI_KEY in the environment")
 
-# Flask exposes the API used by the Expo frontend.
+# Create the Flask app that the Expo frontend calls.
 app = Flask(__name__)
 
-# Allow the Expo dev server or web build to call this API from another origin.
+# Allow the frontend to call this backend from web or mobile.
 CORS(app)
 
-# Reuse one Gemini client for image extraction and ChefBot chat requests.
+# Use one Gemini client for both image extraction and ChefBot.
 client = genai.Client(api_key=GEMINI_KEY)
 
 @app.errorhandler(Exception)
 def handle_unexpected_error(error):
-    # Keep API failures JSON-shaped so the frontend can show friendly errors.
+    # Return errors as JSON so the frontend can show a readable message.
     return jsonify({"error": str(error)}), 500
 
 @app.route("/", methods=["GET"])

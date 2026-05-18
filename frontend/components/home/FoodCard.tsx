@@ -3,11 +3,11 @@ import { FoodItem } from "@/components/home/types";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { Image, Platform, Text, TouchableOpacity, View } from "react-native";
 
-// One inventory card on the Home screen.
-// It displays saved food details and exposes edit/delete/image-preview actions.
+// This is one food card on the Home screen.
+// It shows food details and has options for edit, delete, and image preview.
 
 interface FoodCardProps {
-  // FoodCard is display-only; parent callbacks handle editing, deleting, and image preview.
+  // Parent functions handle edit, delete, and preview actions.
   food: FoodItem;
   displayImageUri: string | null;
   hasUnsyncedImage: boolean;
@@ -34,7 +34,7 @@ export function FoodCard({
 }: FoodCardProps) {
   return (
     <View style={styles.card}>
-      {/* Tapping the saved image opens the full-screen preview modal. */}
+      {/* Tap the image to open the full-screen preview. */}
       {displayImageUri && (
         <TouchableOpacity
           activeOpacity={0.9}
@@ -44,7 +44,7 @@ export function FoodCard({
         </TouchableOpacity>
       )}
 
-      {/* Web users can reattach an image when only a native file path was saved. */}
+      {/* On web, let users reattach an image if only a mobile path was saved. */}
       {!displayImageUri && hasUnsyncedImage && (
         <TouchableOpacity style={styles.unsyncedImageBox} onPress={onAddWebImage}>
           <Text style={styles.unsyncedImageText}>Click to add image</Text>
@@ -60,7 +60,7 @@ export function FoodCard({
         />
       </TouchableOpacity>
 
-      {/* Native uses Alert options; web uses this inline menu. */}
+      {/* Mobile uses Alert options, but web uses this inline menu. */}
       {Platform.OS === "web" && isWebMenuOpen && (
         <View style={styles.webMenu}>
           <TouchableOpacity

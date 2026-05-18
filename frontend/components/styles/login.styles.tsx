@@ -1,6 +1,6 @@
 import { StyleSheet } from "react-native";
 
-// Styles for the login screen.
+// Styles for the login page.
 
 export const styles = StyleSheet.create({
   container: {

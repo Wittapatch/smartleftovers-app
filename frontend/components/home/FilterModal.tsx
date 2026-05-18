@@ -2,10 +2,10 @@ import { styles } from "@/components/styles/index.styles";
 import { SortMode } from "@/components/home/types";
 import { Modal, Text, TouchableOpacity, View } from "react-native";
 
-// Modal for choosing a food type filter and alphabetical sort mode.
+// This modal lets the user filter by food type or sort by name.
 
 interface FilterModalProps {
-  // Filter state lives in HomeScreen; this modal only presents choices.
+  // Home owns the filter state; this modal just shows the choices.
   foodTypes: string[];
   selectedFoodType: string | null;
   sortMode: SortMode;
@@ -32,7 +32,7 @@ export function FilterModal({
 
           <Text style={styles.filterSectionTitle}>Food type</Text>
 
-          {/* null means no food type filter is applied. */}
+          {/* null means show all food types. */}
           <TouchableOpacity
             style={[
               styles.sortOption,
@@ -49,7 +49,7 @@ export function FilterModal({
             />
           </TouchableOpacity>
 
-          {/* Food types are generated from the saved food list. */}
+          {/* Food types come from the user's saved foods. */}
           {foodTypes.map((foodType) => (
             <TouchableOpacity
               key={foodType}

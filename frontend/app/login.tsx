@@ -8,8 +8,8 @@ import { useState } from "react";
 import {Alert,KeyboardAvoidingView,Platform,Text,TextInput,TouchableOpacity,View} from "react-native";
 import { styles } from "@/components/styles/login.styles";
 
-// Login screen: signs the user in with Firebase, then makes sure the backend
-// has a matching MongoDB document for that Firebase user id.
+// This is the login page.
+// It logs the user in with Firebase and makes sure MongoDB has their user id.
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
@@ -26,7 +26,7 @@ export default function LoginScreen() {
     }
   };
 
-  // Login existing user after checking that both fields have values.
+  // Log in after checking that email and password are filled in.
   const login = async () => {
     setErrorMessage("");
 
@@ -49,7 +49,7 @@ export default function LoginScreen() {
         password,
       );
 
-      // Ensure this Firebase account has a matching MongoDB user document.
+      // Make sure this Firebase user also has a MongoDB document.
       await apiJsonFetch("/create-user", {
         method: "POST",
         body: JSON.stringify({
@@ -57,7 +57,7 @@ export default function LoginScreen() {
         }),
       });
 
-      // Web uses sessionStorage so a browser restart returns to the login screen.
+      // For web, mark this browser tab as logged in.
       allowWebAuthSession();
       Alert.alert("Login success", userCredential.user.email ?? "");
       router.replace("/(tabs)");
@@ -74,7 +74,7 @@ export default function LoginScreen() {
       style={styles.container}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
-      {/* Logo box */}
+      {/* App logo */}
       <View style={styles.logoContainer}>
         <Text
           style={styles.logoText}
@@ -113,7 +113,7 @@ export default function LoginScreen() {
         <Text style={styles.buttonText}>Login</Text>
       </TouchableOpacity>
 
-      {/* Go to sign up page */}
+      {/* Button to go to sign up page */}
       <TouchableOpacity
         style={styles.button}
         onPress={() => router.push("/signUp")}

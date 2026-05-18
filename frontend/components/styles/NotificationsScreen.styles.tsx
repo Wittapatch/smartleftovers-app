@@ -1,6 +1,6 @@
 import { StyleSheet } from "react-native";
 
-// Styles for notification reminder cards and empty/loading states.
+// Styles for the notifications page.
 
 export const styles = StyleSheet.create({
   container: {

@@ -2,10 +2,10 @@ import CameraCapture from "@/components/CameraCapture";
 import { styles } from "@/components/styles/index.styles";
 import { Modal, Text, TouchableOpacity, View } from "react-native";
 
-// Full-screen modal wrapper around the camera capture UI.
+// This modal shows the camera full screen.
 
 interface CameraFoodModalProps {
-  // Wraps CameraCapture component in a modal so HomeScreen only needs the final photo URI.
+  // Home only needs the final photo URI from this modal.
   visible: boolean;
   onClose: () => void;
   onPhotoTaken: (uri: string) => void;

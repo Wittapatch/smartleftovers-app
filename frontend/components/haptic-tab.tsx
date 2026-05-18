@@ -2,16 +2,16 @@ import { BottomTabBarButtonProps } from '@react-navigation/bottom-tabs';
 import { PlatformPressable } from '@react-navigation/elements';
 import * as Haptics from 'expo-haptics';
 
-// Small wrapper around the normal tab button so iOS users get tap feedback.
+// This wraps the normal tab button so iOS gives a small tap feedback.
 
 export function HapticTab(props: BottomTabBarButtonProps) {
-  // Custom tab button adds iOS haptics while keeping React Navigation behavior.
+  // Keep normal tab behavior, but add haptics on iOS.
   return (
     <PlatformPressable
       {...props}
       onPressIn={(ev) => {
         if (process.env.EXPO_OS === 'ios') {
-          // Add a soft haptic feedback when pressing down on the tabs.
+          // Add a light vibration when pressing the tab.
           Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         }
         props.onPressIn?.(ev);

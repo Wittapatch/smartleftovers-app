@@ -4,8 +4,8 @@ import React from 'react';
 import { HapticTab } from '@/components/haptic-tab';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 
-// Defines the bottom tab navigation used after the user logs in.
-// Each tab points to one screen file inside app/(tabs).
+// This file sets up the bottom tabs after the user logs in.
+// Each tab connects to a screen inside the tabs folder.
 
 export default function TabLayout() {
   return (
