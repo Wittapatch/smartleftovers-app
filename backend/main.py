@@ -6,6 +6,10 @@ from flask_cors import CORS
 from google import genai
 from google.genai import types
 
+# This file defines the Flask API routes used by the Expo app.
+# It receives requests from the frontend, calls MongoDB helper functions,
+# and calls Gemini for image extraction and ChefBot recipe suggestions.
+
 # Load local environment variables when running outside Docker.
 load_dotenv()
 

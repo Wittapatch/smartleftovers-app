@@ -8,6 +8,9 @@ import { useState } from "react";
 import {Alert,KeyboardAvoidingView,Platform,Text,TextInput,TouchableOpacity,View} from "react-native";
 import { styles } from "@/components/styles/login.styles";
 
+// Login screen: signs the user in with Firebase, then makes sure the backend
+// has a matching MongoDB document for that Firebase user id.
+
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -23,7 +26,7 @@ export default function LoginScreen() {
     }
   };
 
-  // Login existing user
+  // Login existing user after checking that both fields have values.
   const login = async () => {
     setErrorMessage("");
 

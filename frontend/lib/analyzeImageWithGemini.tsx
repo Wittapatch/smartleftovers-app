@@ -1,6 +1,9 @@
 import { Platform } from "react-native";
 import { getApiUrl } from "./api";
 
+// Sends a selected food image to the backend, then converts Gemini's JSON text
+// into form fields that the user can review before saving.
+
 export interface ExtractedFoodData {
     name:string;
     food_type: string;

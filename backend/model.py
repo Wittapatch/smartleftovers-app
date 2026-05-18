@@ -2,6 +2,8 @@ from uuid import uuid4
 
 from pydantic import BaseModel, Field
 
+# Pydantic models validate backend data before it is saved to MongoDB.
+
 Food_Type = str
 
 class FoodItem(BaseModel):

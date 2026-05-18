@@ -11,6 +11,8 @@ import {
   View,
 } from "react-native";
 
+// Modal that lets the user choose which inventory items ChefBot should use.
+
 interface IngredientPickerModalProps {
   // Lets the user choose which saved foods should be sent to ChefBot.
   chatServings: string;

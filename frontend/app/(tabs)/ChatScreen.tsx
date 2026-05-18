@@ -5,7 +5,11 @@ import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { chatWithGemini, ChatIngredient, ChatMessage } from "@/lib/chatWithGemini";
 import { styles } from "@/components/styles/ChatScreen.styles";
 
+// Chat screen for ChefBot. It receives selected ingredients from Home,
+// sends the conversation to the backend, and displays Gemini's recipe response.
+
 const parseIngredients = (ingredientsParam: string | string[] | undefined) => {
+  // Route params are strings, so selected ingredients arrive as JSON text.
   const rawIngredients = Array.isArray(ingredientsParam)? ingredientsParam[0]: ingredientsParam;
 
   if (!rawIngredients) {
@@ -21,6 +25,7 @@ const parseIngredients = (ingredientsParam: string | string[] | undefined) => {
 };
 
 const parseParamText = (param: string | string[] | undefined) => {
+  // Expo Router params can be a string or string array; this normalizes to one string.
   return Array.isArray(param) ? param[0] ?? "" : param ?? "";
 };
 

@@ -1,6 +1,9 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 
+// This file initializes Firebase once and exports the Auth object used by login,
+// signup, settings, and protected screens.
+
 const firebaseConfig = {
   // These EXPO_PUBLIC_* Firebase values are public app config, not backend secrets.
   apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,

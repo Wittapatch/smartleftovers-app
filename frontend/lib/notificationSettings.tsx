@@ -1,5 +1,8 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
+// Local notification preferences are stored on the user's device/browser.
+// These settings control which notification cards are generated in the app.
+
 const NOTIFICATION_SETTINGS_KEY = "smartleftovers-notification-settings";
 
 export interface NotificationSettings {

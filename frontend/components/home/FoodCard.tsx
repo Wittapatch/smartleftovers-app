@@ -3,6 +3,9 @@ import { FoodItem } from "@/components/home/types";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { Image, Platform, Text, TouchableOpacity, View } from "react-native";
 
+// One inventory card on the Home screen.
+// It displays saved food details and exposes edit/delete/image-preview actions.
+
 interface FoodCardProps {
   // FoodCard is display-only; parent callbacks handle editing, deleting, and image preview.
   food: FoodItem;

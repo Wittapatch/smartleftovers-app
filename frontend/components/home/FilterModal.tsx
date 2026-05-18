@@ -2,6 +2,8 @@ import { styles } from "@/components/styles/index.styles";
 import { SortMode } from "@/components/home/types";
 import { Modal, Text, TouchableOpacity, View } from "react-native";
 
+// Modal for choosing a food type filter and alphabetical sort mode.
+
 interface FilterModalProps {
   // Filter state lives in HomeScreen; this modal only presents choices.
   foodTypes: string[];

@@ -4,6 +4,9 @@ from dotenv import load_dotenv
 from model import Food_Type, FoodItem
 from pymongo import MongoClient
 
+# This file contains all MongoDB actions for the app.
+# The Flask routes call these functions instead of writing database logic directly.
+
 load_dotenv()
 
 # MongoDB connection string is provided by Docker or the local terminal.
@@ -31,6 +34,7 @@ def add_user(_id:str):
     )
 
 def delete_user(_id:str):
+    # Remove the whole user document, including all saved food items.
     col.delete_one({"_id":_id})
 
 def filter_food_type(_id:str,food_type:Food_Type):
@@ -78,6 +82,7 @@ def add_food(_id:str,name:str,expiry_date:str,purchase_date:str,food_type:Food_T
     return food_item.food_id
 
 def delete_food(_id:str,food_id:str):
+    # Pull removes only the embedded food item with the matching food_id.
     return col.update_one({"_id":_id},{"$pull":{"food_items":{"food_id":food_id}}})
 
 def update_food(_id:str,food_id:str,name:str,expiry_date:str,purchase_date:str,food_type:Food_Type,quantity:float|None,unit:str,description:str,image_uri:str,image_data:str,use_extract_feature:bool):

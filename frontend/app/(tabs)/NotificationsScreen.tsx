@@ -8,6 +8,9 @@ import { useCallback, useEffect, useState } from "react";
 import {ActivityIndicator,Alert,FlatList,Text,TouchableOpacity,View} from "react-native";
 import { styles } from "@/components/styles/NotificationsScreen.styles";
 
+// Notifications screen: creates reminder cards from saved food data.
+// The reminders are calculated locally from expiry dates, quantities, and settings.
+
 interface StoredFoodItem {
   food_id: string;
   name?: string | null;
@@ -35,6 +38,7 @@ interface Notice {
 }
 
 const parseFoodDate = (value?: string | null) => {
+  // Food dates are stored as DD/MM/YY or DD/MM/YYYY strings.
   if (!value) {
     return null;
   }
@@ -123,6 +127,7 @@ export default function NotificationsScreen() {
   const [notices, setNotices] = useState<Notice[]>([]);
 
   const loadNotices = useCallback(async (user: User) => {
+    // Load current foods and notification preferences, then build visible cards.
     if (!API_URL) {
       Alert.alert("Error", "Missing EXPO_PUBLIC_API_URL");
       setLoading(false);

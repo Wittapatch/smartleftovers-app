@@ -1,3 +1,6 @@
+// Turns technical errors from Firebase, Flask, MongoDB, or fetch into short
+// messages that are appropriate to show in alerts and form errors.
+
 export function getFriendlyErrorMessage(error: unknown, fallback: string) {
   // Convert technical Firebase/backend errors into messages that are safe to show users.
   const rawMessage =

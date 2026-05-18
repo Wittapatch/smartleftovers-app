@@ -1,3 +1,6 @@
+// Shared backend request helpers used by screens and feature-specific API files.
+// Keeping the base URL and JSON parsing here avoids repeating fetch setup everywhere.
+
 export function getApiUrl() {
   // Expo exposes public runtime config through EXPO_PUBLIC_* variables.
   return process.env.EXPO_PUBLIC_API_URL?.trim() ?? "";

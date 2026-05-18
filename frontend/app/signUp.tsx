@@ -8,6 +8,9 @@ import { useState } from "react";
 import {Alert,KeyboardAvoidingView,Platform,Text,TextInput,TouchableOpacity,View} from "react-native";
 import { styles } from "@/components/styles/signUp.styles";
 
+// Sign up screen: creates the Firebase account first, then creates the matching
+// MongoDB user document through the Flask backend.
+
 export default function SignUpScreen() {
   const router = useRouter();
 
@@ -29,7 +32,7 @@ export default function SignUpScreen() {
     }
   };
 
-  // Register new user
+  // Register new user after checking required fields and matching passwords.
   const signUp = async () => {
     setErrorMessage("");
 

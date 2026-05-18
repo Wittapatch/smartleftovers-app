@@ -1,5 +1,8 @@
 import { Platform } from "react-native";
 
+// Web demo helper: sessionStorage marks that the user logged in during this tab.
+// This makes browser refresh behavior predictable without changing mobile auth.
+
 const WEB_AUTH_SESSION_KEY = "smartleftovers_web_auth_session";
 
 const canUseSessionStorage = () => {

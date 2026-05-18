@@ -17,6 +17,9 @@ import { chooseWebImageData, prepareImageUriForStorage } from "@/lib/imageStorag
 import { getFriendlyErrorMessage } from "@/lib/userFriendlyError";
 import { styles } from "@/components/styles/index.styles";
 
+// Home screen: loads the user's food inventory, handles add/edit/delete,
+// sends images to Gemini for extraction, and opens ChefBot with selected foods.
+
 interface StoredFoodItem {
   // This matches the raw food object returned by the Flask/MongoDB backend.
   food_id: string;

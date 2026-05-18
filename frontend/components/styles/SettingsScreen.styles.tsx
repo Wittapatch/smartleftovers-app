@@ -1,5 +1,7 @@
 import { StyleSheet } from "react-native";
 
+// Styles for account settings and notification preference controls.
+
 export const styles = StyleSheet.create({
   keyboardContainer: {
     flex: 1,

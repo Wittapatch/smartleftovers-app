@@ -8,6 +8,9 @@ import 'react-native-reanimated';
 import { auth } from '@/config/firebaseConfig';
 import { clearWebAuthSession, hasWebAuthSession } from '@/lib/webAuthSession';
 
+// Root layout controls the top-level navigation stack and protects the app tabs
+// from opening on web when the user has not logged in during this browser tab.
+
 export const unstable_settings = {
   anchor: '(tabs)',
 };

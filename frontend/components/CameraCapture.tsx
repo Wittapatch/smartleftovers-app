@@ -2,6 +2,9 @@ import { CameraView, useCameraPermissions } from "expo-camera";
 import { useRef, useState } from "react";
 import { Alert, Button, Image, Text, TouchableOpacity, View } from "react-native";
 
+// Native camera component used when adding a food item from a photo.
+// It asks for permission, shows the camera preview, and returns the photo URI.
+
 interface CameraCaptureProps {
   // Sends the captured local image URI back to the parent modal.
   onPhotoTaken?: (uri: string) => void;

@@ -13,6 +13,9 @@ import {
   View,
 } from "react-native";
 
+// Modal form used for both adding new food and editing existing food.
+// The parent screen owns the save logic; this component only edits the draft.
+
 interface FoodFormModalProps {
   // The parent owns draft state so save/cancel/edit behavior stays in HomeScreen.
   draft: FoodDraft;

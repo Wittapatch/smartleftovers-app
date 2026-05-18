@@ -1,5 +1,7 @@
 import { StyleSheet } from "react-native";
 
+// Styles for notification reminder cards and empty/loading states.
+
 export const styles = StyleSheet.create({
   container: {
     flex: 1,

@@ -1,5 +1,8 @@
 import { apiJsonFetch } from "@/lib/api";
 
+// Client-side wrapper for ChefBot.
+// The actual Gemini key stays on the Flask backend, so this file only calls /chat.
+
 export interface ChatMessage {
   role: "user" | "bot";
   text: string;

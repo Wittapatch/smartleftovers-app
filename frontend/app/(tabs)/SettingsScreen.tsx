@@ -8,6 +8,9 @@ import { getFriendlyErrorMessage } from "@/lib/userFriendlyError";
 import { clearWebAuthSession } from "@/lib/webAuthSession";
 import { styles } from "@/components/styles/SettingsScreen.styles";
 
+// Settings screen: manages account changes through Firebase and stores
+// notification preferences locally with AsyncStorage.
+
 export default function SettingsScreen() {
   const router = useRouter();
 
@@ -29,6 +32,7 @@ export default function SettingsScreen() {
 
   useEffect(() => {
     const loadNotificationSettings = async () => {
+      // Load saved switches when the settings screen opens.
       try {
         const settings = await getNotificationSettings();
         setExpiryNotification(settings.expiryNotifications);
@@ -42,6 +46,7 @@ export default function SettingsScreen() {
   }, []);
 
   const updateExpiryNotification = async (value: boolean) => {
+    // Save expiry reminder preference immediately when the switch changes.
     try {
       setExpiryNotification(value);
       await saveNotificationSettings({
@@ -54,6 +59,7 @@ export default function SettingsScreen() {
   };
 
   const updateRestockNotification = async (value: boolean) => {
+    // Save restock reminder preference immediately when the switch changes.
     try {
       setRestockNotification(value);
       await saveNotificationSettings({

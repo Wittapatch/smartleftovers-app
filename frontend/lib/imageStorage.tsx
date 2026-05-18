@@ -1,6 +1,9 @@
 import * as FileSystem from "expo-file-system/legacy";
 import { Platform } from "react-native";
 
+// Image helpers for keeping food photos usable across native and web.
+// Native uses local file URIs, while web needs displayable data URIs.
+
 const getMimeType = (uri: string) => {
   // Preserve the correct image type when converting a local file to a data URI.
   const lowerUri = uri.toLowerCase();
